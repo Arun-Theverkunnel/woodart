@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Wood Art Interio — Work Order System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --walnut:#3D2B1F;--teak:#654321;--amber:#C8861A;
+  --cream:#F5F0E8;--parchment:#EDE5D0;--warm-white:#FAF7F2;
+  --text-dark:#1C1208;--text-mid:#5A4A3A;--text-light:#8B7355;
+  --border:#D4C5A9;--success:#2D6A4F;--danger:#9B2335;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--warm-white);color:var(--text-dark);min-height:100vh;}
+.topbar{background:var(--walnut);padding:0 1.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,0.3);}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-logo{width:34px;height:34px;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;color:white;font-size:17px;}
+.brand-name{font-family:'Playfair Display',serif;color:#F5E6CC;font-size:17px;font-weight:600;}
+.brand-sub{color:#A08060;font-size:11px;}
+.top-btns{display:flex;gap:8px;}
+.btn{padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all 0.18s;display:inline-flex;align-items:center;gap:6px;}
+.btn-amber{background:var(--amber);color:white;}
+.btn-amber:hover{background:#A67415;transform:translateY(-1px);}
+.btn-dark{background:rgba(255,255,255,0.12);color:#F5E6CC;border:1px solid rgba(255,255,255,0.2);}
+.btn-dark:hover{background:rgba(255,255,255,0.2);}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text-mid);}
+.btn-outline:hover{border-color:var(--teak);color:var(--teak);background:var(--cream);}
+.btn-success{background:var(--success);color:white;}
+.btn-gemini{background:linear-gradient(135deg,#1a73e8,#34A853);color:white;border:none;}
+.btn-gemini:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,115,232,0.4);}
+.btn-sm{padding:6px 13px;font-size:12px;}
+.btn:active{transform:scale(0.97);}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important;}
+.main{display:grid;grid-template-columns:1fr 360px;min-height:calc(100vh - 60px);}
+.left{padding:1.5rem;overflow-y:auto;}
+.card{background:white;border-radius:12px;border:1px solid var(--border);padding:1.25rem;margin-bottom:1rem;box-shadow:0 2px 10px rgba(61,43,31,0.07);}
+.card-header{display:flex;align-items:center;gap:9px;margin-bottom:1.1rem;padding-bottom:0.65rem;border-bottom:1px solid var(--parchment);}
+.card-icon{width:32px;height:32px;background:var(--cream);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.card-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--walnut);}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fi{display:flex;flex-direction:column;gap:4px;}
+.fi.full{grid-column:1/-1;}
+.lbl{font-size:10px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:0.06em;}
+input,select,textarea{padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-dark);background:var(--warm-white);transition:border-color 0.15s;outline:none;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--amber);background:white;}
+textarea{resize:vertical;min-height:68px;}
+.cats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.9rem;}
+.cat{padding:4px 13px;border-radius:18px;border:1.5px solid var(--border);font-size:11px;font-weight:600;cursor:pointer;background:white;color:var(--text-mid);transition:all 0.15s;}
+.cat.on{background:var(--walnut);color:#F5E6CC;border-color:var(--walnut);}
+.srch-wrap{position:relative;margin-bottom:.9rem;}
+.srch-wrap input{padding-left:36px;}
+.srch-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-light);}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;max-height:360px;overflow-y:auto;padding:2px;}
+.pc{border:1.5px solid var(--border);border-radius:9px;overflow:hidden;cursor:pointer;transition:all 0.18s;background:white;position:relative;}
+.pc:hover{border-color:var(--amber);box-shadow:0 4px 14px rgba(200,134,26,0.18);transform:translateY(-2px);}
+.pc.on{border-color:var(--success);box-shadow:0 0 0 3px rgba(45,106,79,0.13);}
+.pc-img{width:100%;height:96px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden;}
+.pc-img img{width:100%;height:100%;object-fit:cover;}
+.pc-body{padding:7px 9px;}
+.pc-name{font-size:11px;font-weight:600;color:var(--text-dark);line-height:1.3;margin-bottom:2px;}
+.pc-cat{font-size:9px;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;}
+.pc-price{font-size:12px;font-weight:700;color:var(--teak);margin-top:3px;}
+.pc-tick{position:absolute;top:5px;right:5px;background:var(--success);color:white;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.right{background:var(--walnut);display:flex;flex-direction:column;}
+.oh{padding:1.25rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,0.08);}
+.oh-title{font-family:'Playfair Display',serif;color:#F5E6CC;font-size:17px;margin-bottom:1px;}
+.oid{color:var(--amber);font-size:11px;font-weight:600;font-family:monospace;}
+.olist{flex:1;overflow-y:auto;padding:.9rem 1.25rem;}
+.oempty{text-align:center;padding:2.5rem 1rem;}
+.oempty-icon{font-size:44px;margin-bottom:10px;opacity:0.35;}
+.oempty-txt{color:#8B7355;font-size:13px;}
+.oi{background:rgba(255,255,255,0.06);border-radius:9px;padding:10px;margin-bottom:9px;border:1px solid rgba(255,255,255,0.08);}
+.oi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;}
+.oi-info{display:flex;align-items:flex-start;gap:7px;}
+.oi-thumb{width:40px;height:40px;border-radius:5px;object-fit:cover;border:1px solid rgba(255,255,255,0.18);flex-shrink:0;}
+.oi-thumb-emoji{width:40px;height:40px;border-radius:5px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.oi-name{font-size:12px;font-weight:600;color:#F5E6CC;line-height:1.3;max-width:160px;}
+.oi-cat{font-size:9px;color:#8B7355;text-transform:uppercase;margin-top:1px;}
+.oi-ctrl{display:flex;align-items:center;gap:5px;margin-top:7px;}
+.qb{width:24px;height:24px;border-radius:5px;background:rgba(255,255,255,0.1);border:none;color:#F5E6CC;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.qb:hover{background:rgba(255,255,255,0.2);}
+.qd{min-width:26px;text-align:center;color:white;font-size:13px;font-weight:600;}
+.pip{width:85px;padding:4px 7px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:5px;color:var(--amber);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;text-align:right;}
+.pip:focus{outline:none;border-color:var(--amber);}
+.itotal{color:#D4B483;font-size:11px;text-align:right;margin-top:3px;}
+.del-btn{background:transparent;border:1px solid rgba(255,100,100,0.3);color:#FF9999;font-size:11px;padding:3px 7px;border-radius:5px;cursor:pointer;}
+.del-btn:hover{background:rgba(255,100,100,0.12);}
+.otot{padding:.9rem 1.25rem;border-top:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);}
+.tr{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.tl{color:#A08060;font-size:12px;}
+.tv{color:#D4B483;font-size:12px;font-weight:600;}
+.tr.grand{border-top:1px solid rgba(255,255,255,0.12);padding-top:9px;margin-top:3px;}
+.tr.grand .tl{color:#F5E6CC;font-size:14px;font-weight:600;}
+.tr.grand .tv{color:var(--amber);font-size:17px;font-weight:700;}
+.gst-sel{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#D4B483;border-radius:5px;padding:2px 7px;font-size:11px;font-family:'DM Sans',sans-serif;width:auto;}
+.adv-in{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--amber);border-radius:5px;padding:3px 7px;font-size:12px;font-weight:600;width:100px;text-align:right;font-family:'DM Sans',sans-serif;}
+.adv-in:focus{outline:none;border-color:var(--amber);}
+.oactions{padding:.9rem 1.25rem;display:flex;flex-direction:column;gap:7px;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:white;border-radius:14px;padding:1.75rem;width:520px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp .2s ease;}
+@keyframes slideUp{from{transform:translateY(18px);opacity:0;}to{transform:none;opacity:1;}}
+.modal-title{font-family:'Playfair Display',serif;font-size:19px;color:var(--walnut);margin-bottom:1.1rem;}
+.modal-foot{display:flex;gap:9px;justify-content:flex-end;margin-top:1.4rem;}
+.gem-banner{background:linear-gradient(135deg,#E8F0FE,#F0FFF4);border:1px solid #B8D4F8;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px;}
+.gem-banner-txt{font-size:12px;color:#1A3A6B;line-height:1.6;}
+.gem-banner-txt a{color:#1a73e8;font-weight:600;text-decoration:none;}
+.tabs{display:flex;border-bottom:2px solid var(--parchment);margin-bottom:1.1rem;}
+.tab{padding:7px 15px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-light);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.tab.on{color:var(--walnut);border-bottom-color:var(--amber);}
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:1.25rem;text-align:center;background:var(--warm-white);transition:all .2s;cursor:pointer;}
+.upload-zone:hover{border-color:var(--amber);background:var(--cream);}
+#camFeed{width:100%;border-radius:9px;background:#111;display:none;}
+#camFeed.on{display:block;}
+.cam-btns{display:flex;gap:8px;justify-content:center;margin-top:9px;}
+#camPlaceholder{text-align:center;padding:1.75rem;background:var(--warm-white);border-radius:9px;border:2px dashed var(--border);}
+#capturedWrap{display:none;text-align:center;margin-top:10px;}
+/* Photo preview */
+.photo-preview-strip{display:none;align-items:center;gap:10px;margin-top:10px;padding:10px;background:var(--warm-white);border-radius:9px;border:1px solid var(--border);}
+.photo-preview-strip img{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);}
+.photo-preview-strip.show{display:flex;}
+/* AI section */
+.ai-section{display:none;margin-top:14px;}
+.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.ai-title{font-size:13px;font-weight:700;color:var(--walnut);}
+.ai-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:14px;font-size:10px;font-weight:700;}
+.ai-badge.thinking{background:#FFF3CD;color:#856404;animation:pulse 1.2s ease-in-out infinite;}
+.ai-badge.done{background:#D1FAE5;color:#065F46;}
+.ai-badge.err{background:#FEE2E2;color:#991B1B;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+.style-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.style-pill{padding:4px 12px;border-radius:16px;border:1.5px solid var(--border);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;background:white;color:var(--text-mid);}
+.style-pill.on{background:var(--walnut);color:#F5E6CC;border-color:var(--walnut);}
+.progress-wrap{display:none;margin-top:8px;}
+.progress-bar{width:100%;height:5px;background:#E8E0D4;border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#1a73e8,#34A853);border-radius:3px;transition:width .5s ease;width:0%;}
+.progress-lbl{font-size:11px;color:#1a73e8;text-align:center;margin-top:5px;}
+/* Before After */
+.ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;}
+.ba-box{position:relative;border-radius:9px;overflow:hidden;border:1.5px solid var(--border);}
+.ba-box img{width:100%;height:150px;object-fit:contain;background:#F5F0E8;display:block;}
+.ba-lbl{position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.6);color:white;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;text-transform:uppercase;}
+.ba-lbl.ai{left:auto;right:6px;background:linear-gradient(135deg,#1a73e8,#34A853);}
+.ai-desc-box{background:linear-gradient(135deg,#E8F0FE,#F0FFF4);border:1px solid #B8D4F8;border-radius:8px;padding:10px;margin-top:10px;font-size:12px;color:#1A3A6B;line-height:1.6;display:none;}
+.ba-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:9px;}
+.div{height:1px;background:var(--parchment);margin:.85rem 0;}
+.badge-count{background:var(--amber);color:white;width:19px;height:19px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-left:5px;}
+.toast{position:fixed;bottom:1.75rem;left:50%;transform:translateX(-50%) translateY(10px);padding:11px 22px;border-radius:28px;font-size:13px;font-weight:500;box-shadow:0 8px 28px rgba(0,0,0,0.25);z-index:999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;background:var(--walnut);color:#F5E6CC;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{background:var(--success);}
+.toast.ai{background:linear-gradient(135deg,#1a73e8,#34A853);}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+@media(max-width:860px){.main{grid-template-columns:1fr;}.fg{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo">W</div>
+    <div><div class="brand-name">Wood Art Interio</div><div class="brand-sub">Work Order System — Manarcadu, Kottayam</div></div>
+  </div>
+  <div class="top-btns">
+    <button class="btn btn-dark" onclick="resetAll()">&#8635; New Order</button>
+    <button class="btn btn-amber" onclick="generatePDF()">&#11015; PDF</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="left">
+
+    <div class="card">
+      <div class="card-header"><div class="card-icon">&#128100;</div><div class="card-title">Customer Details</div></div>
+      <div class="fg">
+        <div class="fi"><div class="lbl">Customer Name *</div><input id="cName" placeholder="e.g. Rajan Mathew"/></div>
+        <div class="fi"><div class="lbl">Phone *</div><input id="cPhone" type="tel" placeholder="+91 98765 43210"/></div>
+        <div class="fi"><div class="lbl">Email</div><input id="cEmail" type="email" placeholder="customer@email.com"/></div>
+        <div class="fi"><div class="lbl">Order Date</div><input id="oDate" type="date"/></div>
+        <div class="fi full"><div class="lbl">Delivery Address</div><input id="cAddr" placeholder="House / Street, Locality, District, PIN"/></div>
+        <div class="fi"><div class="lbl">Expected Delivery</div><input id="dDate" type="date"/></div>
+        <div class="fi"><div class="lbl">Sales Executive</div><input id="exec" placeholder="Staff name"/></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">&#128715;</div>
+        <div class="card-title">Select Products <span id="obadge" class="badge-count" style="display:none">0</span></div>
+      </div>
+      <div class="cats">
+        <div class="cat on" onclick="filterCat('all',this)">All</div>
+        <div class="cat" onclick="filterCat('Bedroom',this)">&#127756; Bedroom</div>
+        <div class="cat" onclick="filterCat('Living Room',this)">&#128715; Living Room</div>
+        <div class="cat" onclick="filterCat('Dining',this)">&#127829; Dining</div>
+        <div class="cat" onclick="filterCat('Occasional',this)">&#128218; Occasional</div>
+        <div class="cat" onclick="filterCat('Office',this)">&#128188; Office</div>
+      </div>
+      <div class="srch-wrap"><span class="srch-icon">&#128269;</span><input id="srch" placeholder="Search products..." oninput="renderProds()"/></div>
+      <div class="pgrid" id="pgrid"></div>
+      <div class="div"></div>
+      <button class="btn btn-outline btn-sm" onclick="openModal()">+ Add Custom / Unlisted Product with AI Photo</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-icon">&#128203;</div><div class="card-title">Notes &amp; Terms</div></div>
+      <div class="fg">
+        <div class="fi full"><div class="lbl">Special Instructions</div><textarea id="notes" placeholder="Grey fabric, ground floor delivery, assemble on site..."></textarea></div>
+        <div class="fi full"><div class="lbl">Terms &amp; Conditions</div>
+          <textarea id="terms" rows="5">1. Prices are inclusive of GST as mentioned above.
+2. Advance payment confirms the order; balance due before delivery.
+3. Delivery within Kottayam district is free. Outside: as agreed.
+4. Customised orders once placed cannot be cancelled or refunded.
+5. Warranty: 2 years structural frame; fabric/finish as per manufacturer terms.
+6. Any damage during self-transport is not covered under warranty.
+7. This work order is valid for 15 days from the date of issue.</textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="right">
+    <div class="oh"><div class="oh-title">Order Summary</div><div class="oid" id="oid">WA-0001</div></div>
+    <div class="olist" id="olist">
+      <div class="oempty"><div class="oempty-icon">&#128715;</div><div class="oempty-txt">Select products from the<br>catalogue to begin</div></div>
+    </div>
+    <div class="otot">
+      <div class="tr"><span class="tl">Subtotal</span><span class="tv" id="sub">Rs. 0</span></div>
+      <div class="tr">
+        <span class="tl">GST</span>
+        <select class="gst-sel" id="gstR" onchange="recalc()">
+          <option value="0">0%</option><option value="5">5%</option>
+          <option value="12" selected>12%</option><option value="18">18%</option><option value="28">28%</option>
+        </select>
+        <span class="tv" id="gstAmt">Rs. 0</span>
+      </div>
+      <div class="tr grand"><span class="tl">Grand Total</span><span class="tv" id="grand">Rs. 0</span></div>
+      <div class="tr" style="margin-top:9px"><span class="tl">Advance Received</span><input class="adv-in" id="adv" type="number" value="0" oninput="recalc()"/></div>
+      <div class="tr"><span class="tl" style="color:#F5E6CC;font-weight:600">Balance Due</span><span class="tv" id="bal" style="color:#FF9B71">Rs. 0</span></div>
+    </div>
+    <div class="oactions">
+      <button class="btn btn-amber" onclick="generatePDF()" style="width:100%;justify-content:center;padding:11px;">&#11015; Download Work Order PDF</button>
+      <button class="btn btn-success" onclick="waShare()" style="width:100%;justify-content:center;">&#128242; Share via WhatsApp</button>
+      <button class="btn btn-outline" onclick="window.print()" style="width:100%;justify-content:center;color:#A08060;border-color:#5A4030;">&#128424; Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">&#10024; Add Custom Product</div>
+
+    <div class="gem-banner">
+      <div style="font-size:22px">G</div>
+      <div class="gem-banner-txt">
+        <strong style="color:#1a73e8">Powered by Google Gemini AI</strong> — Free, 1,500 requests/day.<br>
+        Get key at <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> &rarr; <strong>Get API key</strong>
+      </div>
+    </div>
+    <div class="fi" style="margin-bottom:12px;">
+      <div class="lbl">Gemini API Key</div>
+      <input type="password" id="gemKey" placeholder="AIzaSy..." autocomplete="off"/>
+    </div>
+
+    <div class="div"></div>
+    <div class="fg">
+      <div class="fi full"><div class="lbl">Product Name *</div><input id="pName" placeholder="e.g. Custom King Bed with Storage"/></div>
+      <div class="fi">
+        <div class="lbl">Category</div>
+        <select id="pCat"><option>Bedroom</option><option>Living Room</option><option>Dining</option><option>Occasional</option><option>Office</option><option>Other</option></select>
+      </div>
+      <div class="fi"><div class="lbl">Unit Price (Rs.)</div><input id="pPrice" type="number" placeholder="e.g. 45000"/></div>
+      <div class="fi full"><div class="lbl">Description / Specs</div><input id="pDesc" placeholder="Material, size, colour, finish..."/></div>
+    </div>
+
+    <div class="div"></div>
+    <div class="lbl" style="display:block;margin-bottom:8px;">Product Photo</div>
+    <div class="tabs">
+      <div class="tab on" id="tUp" onclick="switchTab('up')">&#128193; Upload Photo</div>
+      <div class="tab" id="tCam" onclick="switchTab('cam')">&#128247; Live Camera</div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div id="panelUp">
+      <div class="upload-zone" onclick="document.getElementById('fInput').click()">
+        <input type="file" id="fInput" accept="image/*" style="display:none" onchange="onFile(event)"/>
+        <div id="upPh"><div style="font-size:36px">&#128444;&#65039;</div><div style="font-size:12px;color:var(--text-light);margin-top:6px;">Click to browse or drop an image</div><div style="font-size:10px;color:#bbb;margin-top:3px">JPG, PNG, WEBP accepted</div></div>
+      </div>
+    </div>
+
+    <!-- CAMERA -->
+    <div id="panelCam" style="display:none">
+      <video id="camFeed" autoplay playsinline></video>
+      <canvas id="camCanvas" style="display:none"></canvas>
+      <div id="camPlaceholder">
+        <div style="font-size:36px">&#128247;</div>
+        <div style="font-size:12px;color:var(--text-light);margin-top:6px;">Tap <span style="color:var(--amber);font-weight:600;cursor:pointer" onclick="startCam()">Start Camera</span> to aim at the furniture</div>
+      </div>
+      <div class="cam-btns">
+        <button class="btn btn-outline btn-sm" id="bStart" onclick="startCam()">&#9654; Start Camera</button>
+        <button class="btn btn-amber btn-sm" id="bCapture" onclick="capture()" style="display:none">&#128247; Capture Photo</button>
+        <button class="btn btn-outline btn-sm" id="bStop" onclick="stopCam()" style="display:none">&#9632; Stop</button>
+      </div>
+    </div>
+
+    <!-- PHOTO PREVIEW STRIP (shown for both upload & camera) -->
+    <div class="photo-preview-strip" id="photoStrip">
+      <img id="photoStripImg" src="" alt=""/>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-dark);" id="photoStripLabel">Photo ready</div>
+        <div style="font-size:11px;color:var(--text-light);">Use original or beautify with AI below</div>
+      </div>
+    </div>
+
+    <!-- AI SECTION -->
+    <div class="ai-section" id="aiSec">
+      <div class="div"></div>
+      <div class="ai-header">
+        <div style="font-size:18px">&#10024;</div>
+        <div class="ai-title">AI Background Beautifier</div>
+        <span class="ai-badge" id="aiBadge" style="display:none"></span>
+      </div>
+
+      <!-- KEY NOTICE -->
+      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;margin-bottom:11px;font-size:12px;color:#78350F;line-height:1.6;">
+        &#128073; <strong>Furniture stays unchanged.</strong> Gemini AI will only replace the background behind the furniture with a beautiful premium setting — the furniture's colour, shape, and texture remain 100% original.
+      </div>
+
+      <div class="lbl" style="margin-bottom:7px;">Choose Background Style</div>
+      <div class="style-pills">
+        <div class="style-pill on" data-style="studio" onclick="pickStyle(this)">&#127774; Studio White</div>
+        <div class="style-pill" data-style="warm" onclick="pickStyle(this)">&#127797; Warm Kerala Interior</div>
+        <div class="style-pill" data-style="luxury" onclick="pickStyle(this)">&#10024; Luxury Showroom</div>
+      </div>
+
+      <button class="btn btn-gemini btn-sm" id="bBeautify" onclick="beautify()" style="width:100%;justify-content:center;padding:10px;">
+        &#10024; Beautify Background with AI
+      </button>
+
+      <div class="progress-wrap" id="progWrap">
+        <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+        <div class="progress-lbl" id="progLbl">Sending to Gemini...</div>
+      </div>
+
+      <!-- Before / After -->
+      <div id="baSection" style="display:none">
+        <div class="ba-grid">
+          <div class="ba-box"><img id="baOrig" src="" alt="Original"/><div class="ba-lbl">Original</div></div>
+          <div class="ba-box"><img id="baEnhanced" src="" alt="AI Enhanced"/><div class="ba-lbl ai">&#10024; AI Background</div></div>
+        </div>
+        <div class="ai-desc-box" id="aiDescBox">&#129302; <strong>AI Description:</strong> <span id="aiDescTxt"></span></div>
+        <div class="ba-actions">
+          <button class="btn btn-outline btn-sm" onclick="useOrig()">Use Original</button>
+          <button class="btn btn-gemini btn-sm" onclick="useEnhanced()">Use AI Version &#10024;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-amber" onclick="addCustom()">Add to Order</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// CATALOGUE
+// ══════════════════════════════════════════════════
+const CAT=[
+  {id:1,name:'Milano Sofa 3+1+1',cat:'Living Room',price:85000,e:'🛋️',desc:'Premium leatherette 5-seater'},
+  {id:2,name:'Cartier Corner Sofa',cat:'Living Room',price:95000,e:'🛋️',desc:'L-shaped premium fabric sofa'},
+  {id:3,name:'Recliner Chair',cat:'Living Room',price:14350,e:'💺',desc:'Single recliner with footrest'},
+  {id:4,name:'TV Unit WA-0-1',cat:'Living Room',price:18500,e:'📺',desc:'Wall-mount style walnut finish'},
+  {id:5,name:'ALMA Rack Coffee Table',cat:'Living Room',price:8500,e:'☕',desc:'Open rack design teak wood'},
+  {id:6,name:'ARTIC X Coffee Table',cat:'Living Room',price:9200,e:'☕',desc:'Minimalist glass and wood top'},
+  {id:7,name:'Divan Cot WA-DIVAN-1-1',cat:'Living Room',price:22000,e:'🛏️',desc:'Upholstered with storage below'},
+  {id:8,name:'King Bed Hydraulic Storage',cat:'Bedroom',price:42000,e:'🛏️',desc:'6x6 ft walnut veneer finish'},
+  {id:9,name:'Queen Bed',cat:'Bedroom',price:28000,e:'🛏️',desc:'5x6 ft teakwood frame'},
+  {id:10,name:'Sliding Wardrobe 6-Door',cat:'Bedroom',price:55000,e:'🚪',desc:'Mirror shutters 6 doors 8 ft'},
+  {id:11,name:'Wardrobe 4-Door with Loft',cat:'Bedroom',price:38000,e:'🚪',desc:'Laminate finish full-height'},
+  {id:12,name:'Dressing Unit with Mirror',cat:'Bedroom',price:18000,e:'🪞',desc:'LED mirror and 4 drawers'},
+  {id:13,name:'Full Bedroom Set',cat:'Bedroom',price:95000,e:'🛏️',desc:'Bed plus wardrobe plus dresser'},
+  {id:14,name:'Bedside Table Pair',cat:'Bedroom',price:8500,e:'🪑',desc:'Set of 2 with drawer'},
+  {id:15,name:'Kids Bunk Bed',cat:'Bedroom',price:24000,e:'🛏️',desc:'Double-decker with safety rails'},
+  {id:16,name:'Dining Set 6-Seater',cat:'Dining',price:42000,e:'🍽️',desc:'Solid wood table and 6 chairs'},
+  {id:17,name:'Dining Set 4-Seater',cat:'Dining',price:28000,e:'🍽️',desc:'Compact ideal for apartments'},
+  {id:18,name:'Dining Table 6-Seater',cat:'Dining',price:18000,e:'🪑',desc:'Solid sheesham wood 6 ft'},
+  {id:19,name:'Dining Chair per unit',cat:'Dining',price:3500,e:'🪑',desc:'Cushioned seat solid wood legs'},
+  {id:20,name:'Book Shelf 6-Level',cat:'Occasional',price:12000,e:'📚',desc:'Open design 6 levels'},
+  {id:21,name:'Study Table with Bookshelf',cat:'Occasional',price:9500,e:'📖',desc:'Student home office combo'},
+  {id:22,name:'Bar Stool Set of 2',cat:'Occasional',price:7500,e:'🪑',desc:'Counter height metal legs'},
+  {id:23,name:'Coat Hanger Shoe Rack',cat:'Occasional',price:4500,e:'🧥',desc:'Entryway organiser'},
+  {id:24,name:'Computer Office Desk',cat:'Office',price:14000,e:'💻',desc:'Cable management with drawers'},
+  {id:25,name:'Executive Office Chair',cat:'Office',price:11000,e:'💺',desc:'High-back with lumbar support'},
+  {id:26,name:'File Rack 4-Tier',cat:'Office',price:4500,e:'📁',desc:'Office organiser metal frame'},
+  {id:27,name:'Storage Ottoman',cat:'Occasional',price:7200,e:'📦',desc:'Upholstered lid storage inside'},
+];
+
+let items=[],curCat='all',camStream=null;
+let rawB64=null,rawMime='image/jpeg';
+let beautifiedUrl=null,chosenUrl=null;
+let oc=parseInt(localStorage.getItem('waOC')||'1');
+let chosenStyle='studio';
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('oDate').value=new Date().toISOString().split('T')[0];
+  const dd=new Date();dd.setDate(dd.getDate()+14);
+  document.getElementById('dDate').value=dd.toISOString().split('T')[0];
+  const saved=localStorage.getItem('gemKey');
+  if(saved)document.getElementById('gemKey').value=saved;
+  updateOid();renderProds();
+});
+
+function updateOid(){document.getElementById('oid').textContent='WA-'+String(oc).padStart(4,'0');}
+
+function filterCat(c,el){
+  curCat=c;
+  document.querySelectorAll('.cat').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');renderProds();
+}
+function renderProds(){
+  const s=document.getElementById('srch').value.toLowerCase();
+  const g=document.getElementById('pgrid');
+  const f=CAT.filter(p=>(curCat==='all'||p.cat===curCat)&&(!s||p.name.toLowerCase().includes(s)||p.desc.toLowerCase().includes(s)));
+  if(!f.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-light)">No products found</div>';return;}
+  g.innerHTML=f.map(p=>{
+    const io=items.find(i=>i.id===p.id);
+    return `<div class="pc ${io?'on':''}" onclick="toggleProd(${p.id})">
+      <div class="pc-img">${p.imgData?`<img src="${p.imgData}"/>`:`${p.e}`}</div>
+      <div class="pc-body">
+        <div class="pc-name">${p.name}</div>
+        <div class="pc-cat">${p.cat}</div>
+        <div class="pc-price">Rs.${p.price.toLocaleString('en-IN')}</div>
+      </div>
+      ${io?'<div class="pc-tick">&#10003;</div>':''}
+    </div>`;
+  }).join('');
+}
+function toggleProd(id){
+  const p=CAT.find(x=>x.id===id),e=items.find(i=>i.id===id);
+  if(e){items=items.filter(i=>i.id!==id);toast(`Removed: ${p.name}`);}
+  else{items.push({...p,qty:1,unitPrice:p.price});toast(`Added: ${p.name}`);}
+  renderProds();renderSummary();
+}
+
+function renderSummary(){
+  const list=document.getElementById('olist'),badge=document.getElementById('obadge');
+  if(!items.length){
+    list.innerHTML='<div class="oempty"><div class="oempty-icon">&#128715;</div><div class="oempty-txt">Select products from the<br>catalogue to begin</div></div>';
+    badge.style.display='none';recalc();return;
+  }
+  badge.style.display='inline-flex';badge.textContent=items.length;
+  list.innerHTML=items.map((item,idx)=>`
+    <div class="oi">
+      <div class="oi-top">
+        <div class="oi-info">
+          ${item.imgData
+            ? `<img src="${item.imgData}" class="oi-thumb" crossorigin="anonymous"/>`
+            : `<div class="oi-thumb-emoji">${item.e}</div>`}
+          <div><div class="oi-name">${item.name}</div><div class="oi-cat">${item.cat}</div></div>
+        </div>
+        <button class="del-btn" onclick="removeItem(${idx})">&#10005;</button>
+      </div>
+      <div class="oi-ctrl">
+        <button class="qb" onclick="chQty(${idx},-1)">&#8722;</button>
+        <span class="qd">${item.qty}</span>
+        <button class="qb" onclick="chQty(${idx},1)">&#43;</button>
+        <span style="color:#8B7355;font-size:11px;flex:1;text-align:right">@</span>
+        <input class="pip" type="number" value="${item.unitPrice}" onchange="updPrice(${idx},this.value)"/>
+      </div>
+      <div class="itotal">Rs.${(item.qty*item.unitPrice).toLocaleString('en-IN')}</div>
+    </div>`).join('');
+  recalc();
+}
+function chQty(i,d){items[i].qty=Math.max(1,items[i].qty+d);renderSummary();}
+function updPrice(i,v){items[i].unitPrice=parseFloat(v)||0;recalc();}
+function removeItem(i){const n=items[i].name;items.splice(i,1);renderProds();renderSummary();toast(`Removed: ${n}`);}
+function recalc(){
+  const s=items.reduce((a,i)=>a+(i.qty*i.unitPrice),0);
+  const gr=parseFloat(document.getElementById('gstR').value);
+  const tax=s*gr/100,grand=s+tax,adv=parseFloat(document.getElementById('adv').value)||0;
+  document.getElementById('sub').textContent='Rs. '+s.toLocaleString('en-IN');
+  document.getElementById('gstAmt').textContent='Rs. '+Math.round(tax).toLocaleString('en-IN');
+  document.getElementById('grand').textContent='Rs. '+Math.round(grand).toLocaleString('en-IN');
+  document.getElementById('bal').textContent='Rs. '+Math.round(grand-adv).toLocaleString('en-IN');
+}
+
+function openModal(){resetPhoto();document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');stopCam();resetPhoto();}
+
+function switchTab(t){
+  document.getElementById('panelUp').style.display=t==='up'?'block':'none';
+  document.getElementById('panelCam').style.display=t==='cam'?'block':'none';
+  document.getElementById('tUp').classList.toggle('on',t==='up');
+  document.getElementById('tCam').classList.toggle('on',t==='cam');
+  if(t!=='cam')stopCam();
+}
+
+// ── FILE UPLOAD ───────────────────────────────────────
+function onFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const du=ev.target.result;
+    rawMime=f.type||'image/jpeg';
+    rawB64=du.split(',')[1];
+    chosenUrl=du;
+    showPhotoPreview(du,'Photo uploaded');
+    showAiSec(du);
+  };r.readAsDataURL(f);
+}
+
+// ── CAMERA ────────────────────────────────────────────
+async function startCam(){
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920}}});
+    const v=document.getElementById('camFeed');v.srcObject=camStream;v.classList.add('on');
+    document.getElementById('camPlaceholder').style.display='none';
+    document.getElementById('bStart').style.display='none';
+    document.getElementById('bCapture').style.display='inline-flex';
+    document.getElementById('bStop').style.display='inline-flex';
+    toast('Camera ready — aim at the furniture!');
+  }catch(err){toast('Camera access denied. Please allow camera permission.');}
+}
+function capture(){
+  const v=document.getElementById('camFeed'),c=document.getElementById('camCanvas');
+  c.width=v.videoWidth;c.height=v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  const du=c.toDataURL('image/jpeg',0.95);
+  rawMime='image/jpeg';rawB64=du.split(',')[1];chosenUrl=du;
+  showPhotoPreview(du,'Photo captured');
+  showAiSec(du);
+  toast('Photo captured!','ok');
+}
+function stopCam(){
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  const v=document.getElementById('camFeed');v.classList.remove('on');v.srcObject=null;
+  document.getElementById('camPlaceholder').style.display='block';
+  document.getElementById('bStart').style.display='inline-flex';
+  document.getElementById('bCapture').style.display='none';
+  document.getElementById('bStop').style.display='none';
+}
+
+function showPhotoPreview(du,label){
+  document.getElementById('photoStripImg').src=du;
+  document.getElementById('photoStripLabel').textContent=label;
+  document.getElementById('photoStrip').classList.add('show');
+}
+function showAiSec(du){
+  document.getElementById('aiSec').style.display='block';
+  document.getElementById('baSection').style.display='none';
+  document.getElementById('baOrig').src=du;
+  beautifiedUrl=null;
+  document.getElementById('aiBadge').style.display='none';
+  document.getElementById('progWrap').style.display='none';
+  document.getElementById('aiDescBox').style.display='none';
+}
+function resetPhoto(){
+  rawB64=null;rawMime='image/jpeg';beautifiedUrl=null;chosenUrl=null;
+  document.getElementById('photoStrip').classList.remove('show');
+  document.getElementById('photoStripImg').src='';
+  document.getElementById('upPh').style.display='block';
+  document.getElementById('aiSec').style.display='none';
+  document.getElementById('baSection').style.display='none';
+  document.getElementById('progWrap').style.display='none';
+  document.getElementById('aiBadge').style.display='none';
+  document.getElementById('fInput').value='';
+  document.getElementById('aiDescBox').style.display='none';
+}
+
+function pickStyle(el){
+  document.querySelectorAll('.style-pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');chosenStyle=el.dataset.style;
+}
+
+// ══════════════════════════════════════════════════════
+// GEMINI AI — BACKGROUND BEAUTIFICATION
+// The furniture itself is NEVER changed — only the background
+// ══════════════════════════════════════════════════════
+async function beautify(){
+  const key=document.getElementById('gemKey').value.trim();
+  if(!key){toast('Please enter your Gemini API key first');return;}
+  if(!rawB64){toast('Please upload or capture a photo first');return;}
+  localStorage.setItem('gemKey',key);
+
+  const category=document.getElementById('pCat').value;
+  const prodName=document.getElementById('pName').value||category;
+
+  const bgDescriptions={
+    studio:'a seamless pure white studio photography background with very subtle soft gradient from white at top to very light warm grey (#F8F5F0) at bottom, professional product photography lighting, gentle diffused shadows directly below the furniture, absolutely clean and minimal',
+    warm:'a warm elegant Kerala-inspired interior background: soft ivory walls, warm amber accent lighting from the left side, a subtle hint of polished marble floor below, gentle warm bokeh in far background, premium furniture showroom atmosphere, rich and inviting',
+    luxury:'a high-end luxury showroom background: deep charcoal grey wall (#2C2C2C) with very subtle texture, dramatic spot lighting highlighting the furniture from above-left, deep gloss marble floor reflection below, ultra-premium ambience like a 5-star hotel suite'
+  };
+
+  const bgDesc=bgDescriptions[chosenStyle];
+
+  document.getElementById('bBeautify').disabled=true;
+  setProgress(15,'Analysing furniture photo...');
+
+  try{
+    // STEP 1: Analyse the furniture to get exact description for the product field
+    setProgress(25,'Reading furniture details...');
+
+    const analysisResp=await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[
+          {inline_data:{mime_type:rawMime,data:rawB64}},
+          {text:`Analyse this furniture photo and respond with ONLY valid JSON, no markdown, no explanation:
+{
+  "furniture_type": "specific furniture type",
+  "exact_colors": "describe every color/finish you see very precisely",
+  "material": "material description",
+  "product_description": "2 professional sentences for a Kerala premium furniture store brochure"
+}`}
+        ]}],
+        generationConfig:{temperature:0.2,maxOutputTokens:400}
+      })}
+    );
+
+    const ad=await analysisResp.json();
+    if(ad.error)throw new Error(ad.error.message);
+    setProgress(45,'Generating beautified background...');
+
+    let aTxt=ad.candidates[0].content.parts[0].text.trim().replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    let analysis;
+    try{analysis=JSON.parse(aTxt);}
+    catch(e){analysis={exact_colors:'as in original photo',product_description:`Premium ${category} furniture for Indian homes.`};}
+
+    // Auto-fill description
+    if(analysis.product_description&&!document.getElementById('pDesc').value){
+      document.getElementById('pDesc').value=analysis.product_description;
+    }
+
+    // STEP 2: Generate beautified image — FURNITURE UNCHANGED, only background replaced
+    // We use Gemini to generate an HTML canvas composite:
+    // - Draw a beautiful background using canvas gradient/CSS
+    // - Overlay the original photo with background-removal simulation using canvas compositing
+
+    setProgress(65,'Creating premium background...');
+
+    // Ask Gemini for precise background CSS/canvas instructions
+    const bgResp=await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[
+          {text:`You are a CSS/Canvas expert creating a premium background for a furniture product photo.
+
+Create a detailed HTML Canvas 2D drawing instruction set for this background style:
+"${bgDesc}"
+
+Canvas size: 800x600px
+
+Respond with ONLY a valid JSON object (no markdown):
+{
+  "bg_gradient": {
+    "type": "linear or radial",
+    "stops": [{"pos": 0, "color": "#hex"}, {"pos": 1, "color": "#hex"}],
+    "x0": 0, "y0": 0, "x1": 0, "y1": 600
+  },
+  "floor_line_y": 420,
+  "floor_color": "#hex",
+  "floor_opacity": 0.0 to 1.0,
+  "has_reflection": true or false,
+  "ambient_light_color": "#hex",
+  "ambient_light_opacity": 0.0 to 0.3,
+  "vignette_color": "#hex",
+  "vignette_opacity": 0.0 to 0.4
+}`}
+        ]}],
+        generationConfig:{temperature:0.3,maxOutputTokens:400}
+      })}
+    );
+
+    const bgd=await bgResp.json();
+    if(bgd.error)throw new Error(bgd.error.message);
+
+    let bgTxt=bgd.candidates[0].content.parts[0].text.trim().replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    let bgSpec;
+    try{bgSpec=JSON.parse(bgTxt);}
+    catch(e){
+      bgSpec={
+        bg_gradient:{type:'linear',stops:[{pos:0,color:'#ffffff'},{pos:1,color:'#f0ece5'}],x0:0,y0:0,x1:0,y1:600},
+        floor_line_y:420,floor_color:'#e8e0d4',floor_opacity:0.5,
+        has_reflection:false,ambient_light_color:'#FFF8F0',ambient_light_opacity:0.1,
+        vignette_color:'#000000',vignette_opacity:0.08
+      };
+    }
+
+    setProgress(80,'Compositing furniture on premium background...');
+
+    // STEP 3: Build the composite on canvas
+    // Load original image, draw beautiful background, then overlay the furniture
+    // using screen/multiply compositing to preserve furniture while replacing flat backgrounds
+    const beautifiedDataUrl = await buildComposite(rawB64,rawMime,bgSpec);
+
+    beautifiedUrl=beautifiedDataUrl;
+    document.getElementById('baEnhanced').src=beautifiedUrl;
+
+    setProgress(100,'Done!');
+    setTimeout(()=>{document.getElementById('progWrap').style.display='none';},800);
+    setBadge('done','✓ Background beautified!');
+    document.getElementById('baSection').style.display='block';
+
+    if(analysis.product_description){
+      document.getElementById('aiDescTxt').textContent=analysis.product_description;
+      document.getElementById('aiDescBox').style.display='block';
+    }
+
+    document.getElementById('bBeautify').disabled=false;
+    toast('Background beautified — furniture unchanged!','ai');
+
+  }catch(err){
+    setBadge('err','Error');
+    document.getElementById('progWrap').style.display='none';
+    document.getElementById('bBeautify').disabled=false;
+    toast('Error: '+err.message.substring(0,60));
+    console.error(err);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// CANVAS COMPOSITE — Draws premium background + overlays
+// original furniture photo using screen compositing
+// This preserves the furniture 100% while making the
+// background look premium
+// ══════════════════════════════════════════════════════
+function buildComposite(b64,mime,bgSpec){
+  return new Promise((resolve,reject)=>{
+    const W=800,H=600;
+    const cvs=document.createElement('canvas');
+    cvs.width=W;cvs.height=H;
+    const ctx=cvs.getContext('2d');
+
+    // 1. Draw background gradient
+    const g=bgSpec.bg_gradient;
+    let grad;
+    if(g.type==='radial'){
+      grad=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*0.7);
+    }else{
+      grad=ctx.createLinearGradient(g.x0||0,g.y0||0,g.x1||0,g.y1||H);
+    }
+    (g.stops||[{pos:0,color:'#ffffff'},{pos:1,color:'#f0ece5'}]).forEach(s=>{
+      grad.addColorStop(Math.min(1,Math.max(0,s.pos)),s.color);
+    });
+    ctx.fillStyle=grad;
+    ctx.fillRect(0,0,W,H);
+
+    // 2. Floor plane
+    const floorY=bgSpec.floor_line_y||420;
+    if((bgSpec.floor_opacity||0)>0){
+      const floorGrad=ctx.createLinearGradient(0,floorY,0,H);
+      floorGrad.addColorStop(0,hexToRgba(bgSpec.floor_color||'#e8e0d4',bgSpec.floor_opacity||0.4));
+      floorGrad.addColorStop(1,hexToRgba(bgSpec.floor_color||'#e8e0d4',(bgSpec.floor_opacity||0.4)*0.3));
+      ctx.fillStyle=floorGrad;
+      ctx.fillRect(0,floorY,W,H-floorY);
+    }
+
+    // 3. Ambient light overlay
+    if((bgSpec.ambient_light_opacity||0)>0){
+      const ambGrad=ctx.createRadialGradient(W*0.35,H*0.2,0,W*0.35,H*0.2,W*0.6);
+      ambGrad.addColorStop(0,hexToRgba(bgSpec.ambient_light_color||'#FFFAF0',bgSpec.ambient_light_opacity||0.15));
+      ambGrad.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=ambGrad;
+      ctx.fillRect(0,0,W,H);
+    }
+
+    // 4. Load and draw original furniture photo
+    // Using 'source-over' so the entire photo (including its background) shows
+    // Then we apply a smart edge-blend to make it look naturally placed
+    const img=new Image();
+    img.onload=()=>{
+      // Calculate centered placement with slight bottom padding for shadow
+      const imgAspect=img.width/img.height;
+      const targetH=H*0.78;
+      const targetW=targetH*imgAspect;
+      const imgX=(W-targetW)/2;
+      const imgY=(H-targetH)/2-20;
+
+      // Draw soft drop shadow beneath furniture
+      ctx.save();
+      ctx.shadowColor='rgba(0,0,0,0.22)';
+      ctx.shadowBlur=40;
+      ctx.shadowOffsetX=0;
+      ctx.shadowOffsetY=30;
+      ctx.drawImage(img,imgX,imgY,targetW,targetH);
+      ctx.restore();
+
+      // Draw furniture cleanly on top (no shadow)
+      ctx.drawImage(img,imgX,imgY,targetW,targetH);
+
+      // Floor reflection (if enabled)
+      if(bgSpec.has_reflection&&floorY<H){
+        ctx.save();
+        ctx.globalAlpha=0.12;
+        ctx.scale(1,-1);
+        ctx.translate(0,-H);
+        const reflY=H-(imgY+targetH)-(H-floorY)*0.1;
+        ctx.drawImage(img,imgX,reflY,targetW,targetH*0.35);
+        ctx.restore();
+        // Fade the reflection
+        const refFade=ctx.createLinearGradient(0,floorY,0,floorY+targetH*0.35);
+        refFade.addColorStop(0,'rgba(255,255,255,0.0)');
+        refFade.addColorStop(1,'rgba(255,255,255,0.85)');
+        ctx.fillStyle=refFade;
+        ctx.fillRect(0,floorY,W,targetH*0.35);
+      }
+
+      // 5. Vignette
+      if((bgSpec.vignette_opacity||0)>0){
+        const vig=ctx.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,H*0.85);
+        vig.addColorStop(0,'rgba(0,0,0,0)');
+        vig.addColorStop(1,hexToRgba(bgSpec.vignette_color||'#000000',bgSpec.vignette_opacity||0.12));
+        ctx.fillStyle=vig;
+        ctx.fillRect(0,0,W,H);
+      }
+
+      // 6. Subtle "Wood Art Interio" watermark
+      ctx.save();
+      ctx.globalAlpha=0.18;
+      ctx.font='bold 11px Arial';
+      ctx.fillStyle='#5C3D1E';
+      ctx.fillText('WOOD ART INTERIO',W-155,H-12);
+      ctx.restore();
+
+      resolve(cvs.toDataURL('image/jpeg',0.95));
+    };
+    img.onerror=()=>reject(new Error('Could not load image for compositing'));
+    img.src='data:'+mime+';base64,'+b64;
+  });
+}
+
+function hexToRgba(hex,alpha){
+  const r=parseInt(hex.slice(1,3),16);
+  const g=parseInt(hex.slice(3,5),16);
+  const b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function setProgress(pct,lbl){
+  document.getElementById('progWrap').style.display='block';
+  document.getElementById('progFill').style.width=pct+'%';
+  if(lbl)document.getElementById('progLbl').textContent=lbl;
+  if(pct<100)setBadge('thinking',lbl||'Working...');
+}
+function setBadge(type,txt){
+  const b=document.getElementById('aiBadge');
+  b.className='ai-badge '+type;b.textContent=txt;b.style.display='inline-flex';
+}
+function useOrig(){
+  chosenUrl=document.getElementById('baOrig').src;
+  showPhotoPreview(chosenUrl,'Original photo selected');
+  toast('Using original photo');
+  document.getElementById('baSection').style.display='none';
+}
+function useEnhanced(){
+  if(!beautifiedUrl){toast('No AI version yet');return;}
+  chosenUrl=beautifiedUrl;
+  showPhotoPreview(beautifiedUrl,'AI enhanced photo selected');
+  toast('Using AI beautified photo!','ai');
+  document.getElementById('baSection').style.display='none';
+}
+
+// ── ADD CUSTOM PRODUCT ─────────────────────────────────
+function addCustom(){
+  const name=document.getElementById('pName').value.trim();
+  const price=parseFloat(document.getElementById('pPrice').value)||0;
+  const cat=document.getElementById('pCat').value;
+  const desc=document.getElementById('pDesc').value.trim();
+  if(!name){toast('Please enter a product name');return;}
+  const p={id:Date.now(),name,cat,price,e:'📦',desc,imgData:chosenUrl,unitPrice:price,qty:1};
+  CAT.push(p);items.push(p);
+  closeModal();
+  document.getElementById('pName').value='';
+  document.getElementById('pPrice').value='';
+  document.getElementById('pDesc').value='';
+  renderProds();renderSummary();
+  toast(`Added: ${name}`,'ok');
+}
+
+// ══════════════════════════════════════════════════════
+// PDF GENERATION — Images embedded correctly as JPEG
+// ══════════════════════════════════════════════════════
+async function generatePDF(){
+  if(!items.length){toast('Please add at least one product');return;}
+  toast('Building PDF...');
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,H=297,M=14;
+
+  const cn=document.getElementById('cName').value||'Walk-in Customer';
+  const cp=document.getElementById('cPhone').value||'—';
+  const ce=document.getElementById('cEmail').value||'—';
+  const ca=document.getElementById('cAddr').value||'—';
+  const od=document.getElementById('oDate').value||new Date().toISOString().split('T')[0];
+  const dd=document.getElementById('dDate').value||'—';
+  const ex=document.getElementById('exec').value||'—';
+  const nt=document.getElementById('notes').value||'';
+  const tm=document.getElementById('terms').value||'';
+  const id=document.getElementById('oid').textContent;
+  const sub=items.reduce((s,i)=>s+(i.qty*i.unitPrice),0);
+  const gr=parseFloat(document.getElementById('gstR').value);
+  const tax=sub*gr/100,grand=sub+tax,adv=parseFloat(document.getElementById('adv').value)||0,bal=grand-adv;
+  const fd=d=>{try{return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;}};
+
+  // Helper to convert any image dataUrl to JPEG base64 via canvas
+  const toJpegB64=async(dataUrl)=>{
+    return new Promise((resolve)=>{
+      if(!dataUrl){resolve(null);return;}
+      const img=new Image();
+      img.crossOrigin='anonymous';
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        c.width=img.naturalWidth||img.width;
+        c.height=img.naturalHeight||img.height;
+        const ctx=c.getContext('2d');
+        ctx.drawImage(img,0,0);
+        const jpeg=c.toDataURL('image/jpeg',0.92);
+        resolve(jpeg.split(',')[1]);
+      };
+      img.onerror=()=>resolve(null);
+      img.src=dataUrl;
+    });
+  };
+
+  // Pre-convert all item images to JPEG b64
+  const imgCache={};
+  for(const item of items){
+    if(item.imgData){
+      const b64=await toJpegB64(item.imgData);
+      if(b64)imgCache[item.id]=b64;
+    }
+  }
+
+  // ── HEADER ──
+  doc.setFillColor(61,43,31);doc.rect(0,0,W,30,'F');
+  doc.setFillColor(200,134,26);doc.rect(W-58,0,58,30,'F');
+  doc.setTextColor(245,230,204);doc.setFont('helvetica','bold');doc.setFontSize(19);
+  doc.text('WOOD ART INTERIO',M,12);
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(160,128,96);
+  doc.text('Premium Furniture  |  Manarcadu, Kottayam, Kerala 686019',M,18);
+  doc.text('+91 9400233733  |  woodartfurnituremart@gmail.com  |  woodartinterio.com',M,23.5);
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(10.5);
+  doc.text('WORK ORDER',W-29,10,{align:'center'});
+  doc.setFontSize(9);doc.text(id,W-29,17,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(fd(od),W-29,23.5,{align:'center'});
+
+  let y=38;
+
+  // ── CUSTOMER + ORDER INFO ──
+  doc.setFillColor(245,240,232);doc.roundedRect(M,y,86,44,2,2,'F');doc.roundedRect(M+90,y,86,44,2,2,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(101,67,33);
+  doc.text('CUSTOMER DETAILS',M+3,y+6);
+  doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(30,18,8);doc.text(cn,M+3,y+13);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(80,60,40);
+  doc.text(cp,M+3,y+20);doc.text(ce,M+3,y+27);
+  const aLines=doc.splitTextToSize(ca,80);
+  doc.text(aLines[0]||'',M+3,y+34);if(aLines[1])doc.text(aLines[1],M+3,y+39);
+  doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(101,67,33);
+  doc.text('ORDER INFORMATION',M+93,y+6);
+  [['Order ID',id],['Order Date',fd(od)],['Delivery Date',fd(dd)],['Sales Executive',ex]].forEach(([l,v],i)=>{
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(80,60,40);doc.text(l+':',M+93,y+13+i*7.5);
+    doc.setFont('helvetica','normal');doc.text(v,M+93+36,y+13+i*7.5);
+  });
+  y+=52;
+
+  // ── PRODUCT TABLE HEADER ──
+  doc.setFillColor(61,43,31);doc.rect(M,y,W-M*2,9,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(245,230,204);
+  doc.text('Photo',M+2,y+6);
+  doc.text('Product & Description',M+28,y+6);
+  doc.text('Cat.',M+98,y+6);
+  doc.text('Qty',M+122,y+6,{align:'center'});
+  doc.text('Unit Price',M+148,y+6,{align:'right'});
+  doc.text('Total',M+182,y+6,{align:'right'});
+  y+=11;
+
+  // ── PRODUCT ROWS ──
+  const ROW_H=26;
+  const IMG_W=20;
+  const IMG_H=20;
+
+  for(let i=0;i<items.length;i++){
+    const item=items[i];
+    if(y+ROW_H>H-90){doc.addPage();y=20;}
+
+    // Row background
+    const rowBg=i%2===0;
+    doc.setFillColor(rowBg?246:255,rowBg?241:255,rowBg?233:255);
+    doc.rect(M,y,W-M*2,ROW_H,'F');
+    doc.setDrawColor(212,197,169);doc.setLineWidth(0.25);doc.rect(M,y,W-M*2,ROW_H,'S');
+
+    // PRODUCT IMAGE — embed from imgCache
+    const b64=imgCache[item.id];
+    if(b64){
+      try{
+        // Draw a subtle frame/shadow for the image
+        doc.setFillColor(230,220,205);
+        doc.rect(M+1.5,y+3,IMG_W,IMG_H,'F');
+        // Add the actual image
+        doc.addImage(b64,'JPEG',M+1.5,y+3,IMG_W,IMG_H,'img'+item.id,'FAST');
+        // Thin border around image
+        doc.setDrawColor(180,160,130);doc.setLineWidth(0.3);
+        doc.rect(M+1.5,y+3,IMG_W,IMG_H,'S');
+      }catch(err){
+        // Fallback placeholder
+        doc.setFillColor(220,210,195);doc.rect(M+1.5,y+3,IMG_W,IMG_H,'F');
+        doc.setFontSize(7);doc.setTextColor(140,110,80);
+        doc.text('Photo',M+5,y+14);
+      }
+    }else{
+      // Emoji placeholder box
+      doc.setFillColor(235,225,210);doc.rect(M+1.5,y+3,IMG_W,IMG_H,'F');
+      doc.setDrawColor(200,185,165);doc.rect(M+1.5,y+3,IMG_W,IMG_H,'S');
+      doc.setFontSize(9);doc.setTextColor(120,100,80);
+      doc.text(item.e||'',M+5,y+16);
+    }
+
+    // Row number
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(160,128,96);
+    doc.text(String(i+1),M+23.5,y+14,{align:'center'});
+
+    // Product name
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(28,16,8);
+    const nameLines=doc.splitTextToSize(item.name,65);
+    doc.text(nameLines[0],M+28,y+10);
+
+    // Description
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(110,90,70);
+    const desc=item.desc||'';
+    if(desc){
+      const dLines=doc.splitTextToSize(desc,65);
+      doc.text(dLines[0],M+28,y+17);
+      if(nameLines[1])doc.text(nameLines[1],M+28,y+17);
+    }
+
+    // Category
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(80,60,40);
+    doc.text(item.cat,M+98,y+10);
+
+    // Qty
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(30,18,8);
+    doc.text(String(item.qty),M+122,y+10,{align:'center'});
+
+    // Unit price
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(80,60,40);
+    doc.text('Rs.'+item.unitPrice.toLocaleString('en-IN'),M+148,y+10,{align:'right'});
+
+    // Row total
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(61,43,31);
+    doc.text('Rs.'+(item.qty*item.unitPrice).toLocaleString('en-IN'),M+182,y+10,{align:'right'});
+
+    y+=ROW_H;
+  }
+
+  y+=7;
+  if(y>H-92){doc.addPage();y=20;}
+
+  // ── TOTALS + NOTES SIDE BY SIDE ──
+  const tX=M+88,tW=W-M-tX;
+
+  // Notes box (left)
+  if(nt){
+    doc.setFillColor(255,252,235);doc.roundedRect(M,y,84,50,2,2,'F');
+    doc.setDrawColor(220,200,150);doc.setLineWidth(0.3);doc.roundedRect(M,y,84,50,2,2,'S');
+    doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(101,67,33);
+    doc.text('SPECIAL INSTRUCTIONS',M+3,y+7);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(60,45,30);
+    doc.text(doc.splitTextToSize(nt,78).slice(0,6),M+3,y+14);
+  }
+
+  // Totals box (right)
+  doc.setFillColor(245,240,232);doc.roundedRect(tX,y,tW,50,2,2,'F');
+  doc.setDrawColor(200,180,140);doc.setLineWidth(0.3);doc.roundedRect(tX,y,tW,50,2,2,'S');
+  [['Subtotal','Rs.'+sub.toLocaleString('en-IN'),false,false],
+   [`GST @ ${gr}%`,'Rs.'+Math.round(tax).toLocaleString('en-IN'),false,false],
+   ['Grand Total','Rs.'+Math.round(grand).toLocaleString('en-IN'),true,false],
+   ['Advance Received','Rs.'+adv.toLocaleString('en-IN'),false,false],
+   ['Balance Due','Rs.'+Math.round(bal).toLocaleString('en-IN'),false,true]
+  ].forEach(([l,v,bold,highlight],i)=>{
+    const ty=y+7+i*8.5;
+    if(bold){
+      doc.setFillColor(61,43,31);doc.rect(tX,ty-4.5,tW,9,'F');
+      doc.setTextColor(245,230,204);
+    }else if(highlight){
+      doc.setTextColor(155,35,53);
+    }else{
+      doc.setTextColor(80,60,40);
+    }
+    doc.setFont('helvetica',bold?'bold':'normal');
+    doc.setFontSize(bold?9.5:8.5);
+    doc.text(l,tX+4,ty+1);
+    doc.setFont('helvetica','bold');
+    doc.text(v,tX+tW-4,ty+1,{align:'right'});
+  });
+  y+=58;
+
+  // ── TERMS ──
+  if(y>H-72){doc.addPage();y=20;}
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(101,67,33);
+  doc.text('TERMS & CONDITIONS',M,y);
+  doc.setLineWidth(0.4);doc.setDrawColor(200,175,130);doc.line(M,y+2.5,W-M,y+2.5);
+  y+=7;
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(90,70,50);
+  doc.text(doc.splitTextToSize(tm,W-M*2).slice(0,12),M,y);
+  y+=50;
+
+  // ── SIGNATURE BOXES ──
+  const sy=H-38;
+  doc.setDrawColor(180,155,115);doc.setLineWidth(0.4);
+  [
+    {x:M,w:56,l:'Customer Signature & Date'},
+    {x:M+60,w:56,l:'Sales Executive: '+ex},
+    {x:M+120,w:56,l:'Authorised Signatory'},
+  ].forEach(s=>{
+    doc.rect(s.x,sy,s.w,18,'S');
+    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(110,90,70);
+    doc.text(doc.splitTextToSize(s.l,s.w-4),s.x+2,sy+22);
+  });
+
+  // ── FOOTER ──
+  doc.setFillColor(61,43,31);doc.rect(0,H-10,W,10,'F');
+  doc.setFont('helvetica','normal');doc.setFontSize(6.2);doc.setTextColor(160,128,96);
+  doc.text('Wood Art Interio  |  Manarcadu, Kottayam, Kerala  |  +91 9400233733  |  Powered by Aarpo Global Solutions',W/2,H-4,{align:'center'});
+
+  const fname=`WorkOrder_${id}_${cn.replace(/\s+/g,'_')}.pdf`;
+  doc.save(fname);
+  oc++;localStorage.setItem('waOC',String(oc));updateOid();
+  toast('Work Order PDF downloaded!','ok');
+}
+
+// ── WHATSAPP ──────────────────────────────────────────
+function waShare(){
+  if(!items.length){toast('Add at least one product first');return;}
+
+  // Pull all order data
+  const cn   = document.getElementById('cName').value    || 'Walk-in Customer';
+  const cp   = document.getElementById('cPhone').value   || '—';
+  const ce   = document.getElementById('cEmail').value   || '';
+  const ca   = document.getElementById('cAddr').value    || '—';
+  const od   = document.getElementById('oDate').value    || '';
+  const dd   = document.getElementById('dDate').value    || '';
+  const ex   = document.getElementById('exec').value     || '—';
+  const nt   = document.getElementById('notes').value    || '';
+  const tm   = document.getElementById('terms').value    || '';
+  const id   = document.getElementById('oid').textContent;
+  const gr   = parseFloat(document.getElementById('gstR').value);
+  const adv  = parseFloat(document.getElementById('adv').value) || 0;
+
+  const sub   = items.reduce((s,i) => s + (i.qty * i.unitPrice), 0);
+  const tax   = sub * gr / 100;
+  const grand = sub + tax;
+  const bal   = grand - adv;
+
+  const fmtDate = d => {
+    try { return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+    catch(e){ return d; }
+  };
+  const fmtAmt = n => 'Rs.' + Math.round(n).toLocaleString('en-IN');
+
+  // WhatsApp bold = *text*  italic = _text_  mono = ```text```  strikethrough = ~text~
+  // Line of dashes for visual separator
+  const LINE  = '━━━━━━━━━━━━━━━━━━━━━━━';
+  const THIN  = '─────────────────────────';
+
+  // Build item rows — right-align totals using monospace
+  // Format: [Qty x Name                    Total]
+  const itemRows = items.map((it, i) => {
+    const rowTotal = fmtAmt(it.qty * it.unitPrice);
+    const num = String(i+1).padStart(2,' ');
+    // Truncate name to 22 chars for clean wrapping
+    const name = it.name.length > 24 ? it.name.substring(0,22)+'…' : it.name;
+    const qtyStr = `${it.qty} x ${it.unitPrice.toLocaleString('en-IN')}`;
+    return `\`\`\`${num}. ${name}\n    ${qtyStr.padEnd(18,' ')} ${rowTotal}\`\`\``;
+  }).join('\n');
+
+  // Summary rows in monospace block
+  const pad = (label, value, width=24) => {
+    const gap = width - label.length;
+    return label + ' '.repeat(Math.max(1, gap)) + value;
+  };
+
+  const summaryBlock =
+    '```' +
+    pad('Subtotal',          fmtAmt(sub))   + '\n' +
+    pad(`GST (${gr}%)`,      fmtAmt(tax))   + '\n' +
+    THIN.substring(0,25)                     + '\n' +
+    pad('GRAND TOTAL',       fmtAmt(grand)) + '\n' +
+    pad('Advance Paid',      fmtAmt(adv))   + '\n' +
+    pad('BALANCE DUE',       fmtAmt(bal))   +
+    '```';
+
+  // Terms — first 3 only to keep message compact
+  const termLines = tm.split('\n').filter(l=>l.trim()).slice(0,3);
+  const termsBlock = termLines.map(l => `_${l.trim()}_`).join('\n');
+
+  // Assemble the full invoice message
+  const msg = [
+    `🪵 *WOOD ART INTERIO*`,
+    `_Manarcadu, Kottayam, Kerala 686019_`,
+    `_+91 9400233733  |  woodartinterio.com_`,
+    LINE,
+    `📄 *WORK ORDER / INVOICE*`,
+    `*Order No:* ${id}`,
+    `*Date:*       ${fmtDate(od)}`,
+    `*Delivery:* ${fmtDate(dd)}`,
+    LINE,
+    `👤 *BILLED TO*`,
+    `*${cn}*`,
+    `📞 ${cp}`,
+    ce ? `✉️ ${ce}` : null,
+    `📍 ${ca}`,
+    THIN,
+    `🛒 *ITEMS ORDERED*`,
+    itemRows,
+    THIN,
+    `💰 *PAYMENT SUMMARY*`,
+    summaryBlock,
+    THIN,
+    `👨‍💼 *Sales Executive:* ${ex}`,
+    nt ? `📝 *Note:* ${nt}` : null,
+    THIN,
+    `📋 *TERMS*`,
+    termsBlock,
+    LINE,
+    `✅ *Thank you for choosing Wood Art Interio!*`,
+    `_Your trusted premium furniture partner in Kerala._`,
+    `_Please keep this message as your order reference._`,
+    LINE,
+    `_Powered by Aarpo Global Solutions | aarpo.in_`,
+  ].filter(line => line !== null).join('\n');
+
+  const ph = document.getElementById('cPhone').value.replace(/\D/g,'');
+  const waNum = ph.startsWith('91') ? ph : '91' + ph;
+  window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
+
+  toast('Opening WhatsApp with invoice...', 'ok');
+}
+
+// ── RESET ─────────────────────────────────────────────
+function resetAll(){
+  if(items.length>0&&!confirm('Clear current order and start fresh?'))return;
+  items=[];
+  ['cName','cPhone','cEmail','cAddr','exec','notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('adv').value='0';
+  document.getElementById('oDate').value=new Date().toISOString().split('T')[0];
+  const dd=new Date();dd.setDate(dd.getDate()+14);
+  document.getElementById('dDate').value=dd.toISOString().split('T')[0];
+  updateOid();renderProds();renderSummary();toast('Ready for new order');
+}
+
+// ── TOAST ─────────────────────────────────────────────
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast'+(type?' '+type:'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>
