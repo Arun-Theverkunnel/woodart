@@ -604,22 +604,41 @@ async function beautify(){
   document.getElementById('bBeautify').disabled=true;
   setProgress(15,'Analysing furniture photo...');
 
-  // Retry wrapper — handles 429 quota errors with backoff
-  const callGemini=async(payload,attempt=1)=>{
-    const resp=await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}
-    );
-    const data=await resp.json();
+  // Try models in order — fallback if one is unavailable in region
+  const MODELS=[
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-2.0-flash',
+  ];
+  const callGemini=async(payload,modelIdx=0,attempt=1)=>{
+    const model=MODELS[modelIdx]||MODELS[0];
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    let resp,data;
+    try{
+      resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      data=await resp.json();
+    }catch(netErr){
+      throw new Error('Network error: '+netErr.message);
+    }
     if(data.error){
-      const msg=data.error.message||'';
-      if((data.error.code===429||msg.includes('quota')||msg.includes('RESOURCE_EXHAUSTED'))&&attempt<=3){
-        const wait=attempt*5000;
-        setProgress(25,`Quota limit hit — retrying in ${attempt*5}s (attempt ${attempt}/3)...`);
-        await new Promise(r=>setTimeout(r,wait));
-        return callGemini(payload,attempt+1);
+      const code=data.error.code||0;
+      const msg=data.error.message||data.error.status||'Unknown error';
+      const isQuota=code===429||code===403||msg.includes('quota')||msg.includes('RESOURCE_EXHAUSTED')||msg.includes('API_KEY_INVALID')||msg.includes('not found');
+      // Try next model if this one is unavailable or quota hit
+      if(isQuota&&modelIdx<MODELS.length-1){
+        setProgress(25,`Model ${model} unavailable — trying ${MODELS[modelIdx+1]}...`);
+        await new Promise(r=>setTimeout(r,1500));
+        return callGemini(payload,modelIdx+1,1);
       }
-      throw new Error(msg||'Gemini API error');
+      // Retry same model on quota error
+      if(code===429&&attempt<=2){
+        setProgress(25,`Quota limit — retrying in ${attempt*4}s...`);
+        await new Promise(r=>setTimeout(r,attempt*4000));
+        return callGemini(payload,modelIdx,attempt+1);
+      }
+      // Show full error to help debug
+      throw new Error(`[${model}] ${code}: ${msg}`);
     }
     return data;
   };
