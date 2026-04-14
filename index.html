@@ -604,97 +604,59 @@ async function beautify(){
   document.getElementById('bBeautify').disabled=true;
   setProgress(15,'Analysing furniture photo...');
 
-  try{
-    // STEP 1: Analyse the furniture to get exact description for the product field
-    setProgress(25,'Reading furniture details...');
-
-    const analysisResp=await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        contents:[{parts:[
-          {inline_data:{mime_type:rawMime,data:rawB64}},
-          {text:`Analyse this furniture photo and respond with ONLY valid JSON, no markdown, no explanation:
-{
-  "furniture_type": "specific furniture type",
-  "exact_colors": "describe every color/finish you see very precisely",
-  "material": "material description",
-  "product_description": "2 professional sentences for a Kerala premium furniture store brochure"
-}`}
-        ]}],
-        generationConfig:{temperature:0.2,maxOutputTokens:400}
-      })}
+  // Retry wrapper — handles 429 quota errors with backoff
+  const callGemini=async(payload,attempt=1)=>{
+    const resp=await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
+      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}
     );
+    const data=await resp.json();
+    if(data.error){
+      const msg=data.error.message||'';
+      if((data.error.code===429||msg.includes('quota')||msg.includes('RESOURCE_EXHAUSTED'))&&attempt<=3){
+        const wait=attempt*5000;
+        setProgress(25,`Quota limit hit — retrying in ${attempt*5}s (attempt ${attempt}/3)...`);
+        await new Promise(r=>setTimeout(r,wait));
+        return callGemini(payload,attempt+1);
+      }
+      throw new Error(msg||'Gemini API error');
+    }
+    return data;
+  };
 
-    const ad=await analysisResp.json();
-    if(ad.error)throw new Error(ad.error.message);
-    setProgress(45,'Generating beautified background...');
+  // Background spec presets — used as defaults and hints to Gemini
+  const bgPresets={
+    studio:{bg_gradient:{type:'linear',stops:[{pos:0,color:'#FFFFFF'},{pos:1,color:'#F2EEE8'}],x0:0,y0:0,x1:0,y1:600},floor_line_y:430,floor_color:'#E5E0D8',floor_opacity:0.35,has_reflection:false,ambient_light_color:'#FFFDF8',ambient_light_opacity:0.1,vignette_color:'#000000',vignette_opacity:0.1},
+    warm:{bg_gradient:{type:'linear',stops:[{pos:0,color:'#FDF5E6'},{pos:1,color:'#E8D5B0'}],x0:0,y0:0,x1:0,y1:600},floor_line_y:415,floor_color:'#D4B896',floor_opacity:0.5,has_reflection:false,ambient_light_color:'#FFD580',ambient_light_opacity:0.22,vignette_color:'#000000',vignette_opacity:0.15},
+    luxury:{bg_gradient:{type:'linear',stops:[{pos:0,color:'#2C2C2C'},{pos:1,color:'#181818'}],x0:0,y0:0,x1:0,y1:600},floor_line_y:400,floor_color:'#3A3A3A',floor_opacity:0.7,has_reflection:true,ambient_light_color:'#607090',ambient_light_opacity:0.22,vignette_color:'#000000',vignette_opacity:0.45}
+  };
 
-    let aTxt=ad.candidates[0].content.parts[0].text.trim().replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+  try{
+    // SINGLE API CALL — analyse photo + get description (1 call instead of 2 = half the quota)
+    setProgress(30,'Gemini AI analysing your furniture photo...');
+
+    const combinedData=await callGemini({
+      contents:[{parts:[
+        {inline_data:{mime_type:rawMime,data:rawB64}},
+        {text:'Analyse this furniture photo. Respond with ONLY valid JSON, no markdown:\n{"furniture_type":"type","exact_colors":"colors","material":"material","product_description":"2 professional sentences for a Kerala premium furniture store brochure"}'}
+      ]}],
+      generationConfig:{temperature:0.2,maxOutputTokens:350}
+    });
+
     let analysis;
-    try{analysis=JSON.parse(aTxt);}
-    catch(e){analysis={exact_colors:'as in original photo',product_description:`Premium ${category} furniture for Indian homes.`};}
+    try{
+      let t=combinedData.candidates[0].content.parts[0].text.trim().replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+      analysis=JSON.parse(t);
+    }catch(e){
+      analysis={exact_colors:'as in photo',product_description:`Premium ${category} crafted for Indian homes.`};
+    }
 
-    // Auto-fill description
     if(analysis.product_description&&!document.getElementById('pDesc').value){
       document.getElementById('pDesc').value=analysis.product_description;
     }
 
-    // STEP 2: Generate beautified image — FURNITURE UNCHANGED, only background replaced
-    // We use Gemini to generate an HTML canvas composite:
-    // - Draw a beautiful background using canvas gradient/CSS
-    // - Overlay the original photo with background-removal simulation using canvas compositing
-
-    setProgress(65,'Creating premium background...');
-
-    // Ask Gemini for precise background CSS/canvas instructions
-    const bgResp=await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        contents:[{parts:[
-          {text:`You are a CSS/Canvas expert creating a premium background for a furniture product photo.
-
-Create a detailed HTML Canvas 2D drawing instruction set for this background style:
-"${bgDesc}"
-
-Canvas size: 800x600px
-
-Respond with ONLY a valid JSON object (no markdown):
-{
-  "bg_gradient": {
-    "type": "linear or radial",
-    "stops": [{"pos": 0, "color": "#hex"}, {"pos": 1, "color": "#hex"}],
-    "x0": 0, "y0": 0, "x1": 0, "y1": 600
-  },
-  "floor_line_y": 420,
-  "floor_color": "#hex",
-  "floor_opacity": 0.0 to 1.0,
-  "has_reflection": true or false,
-  "ambient_light_color": "#hex",
-  "ambient_light_opacity": 0.0 to 0.3,
-  "vignette_color": "#hex",
-  "vignette_opacity": 0.0 to 0.4
-}`}
-        ]}],
-        generationConfig:{temperature:0.3,maxOutputTokens:400}
-      })}
-    );
-
-    const bgd=await bgResp.json();
-    if(bgd.error)throw new Error(bgd.error.message);
-
-    let bgTxt=bgd.candidates[0].content.parts[0].text.trim().replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    let bgSpec;
-    try{bgSpec=JSON.parse(bgTxt);}
-    catch(e){
-      bgSpec={
-        bg_gradient:{type:'linear',stops:[{pos:0,color:'#ffffff'},{pos:1,color:'#f0ece5'}],x0:0,y0:0,x1:0,y1:600},
-        floor_line_y:420,floor_color:'#e8e0d4',floor_opacity:0.5,
-        has_reflection:false,ambient_light_color:'#FFF8F0',ambient_light_opacity:0.1,
-        vignette_color:'#000000',vignette_opacity:0.08
-      };
-    }
+    // Use preset bgSpec — no second API call needed, saves quota
+    const bgSpec=bgPresets[chosenStyle]||bgPresets.studio;
 
     setProgress(80,'Compositing furniture on premium background...');
 
