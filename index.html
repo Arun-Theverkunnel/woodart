@@ -624,7 +624,7 @@ async function beautify(){
     formData.append('size','auto');
     formData.append('format','png');
 
-    const rbgResp=await fetch('https://api.remove.bg/v1.0/removebg',{
+    const rbgResp=await fetch('/.netlify/functions/removebg',{
       method:'POST',
       headers:{'X-Api-Key':rbgKey},
       body:formData
@@ -874,9 +874,9 @@ function addCustom(){
 // ══════════════════════════════════════════════════════
 // PDF GENERATION — Images embedded correctly as JPEG
 // ══════════════════════════════════════════════════════
-async function generatePDF(){
-  if(!items.length){toast('Please add at least one product');return;}
-  toast('Building PDF...');
+async function generatePDF(returnBlob=false){
+  if(!items.length){if(!returnBlob)toast('Please add at least one product');return null;}
+  if(!returnBlob)toast('Building PDF...');
 
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -1118,13 +1118,17 @@ async function generatePDF(){
   doc.text('Wood Art Interio  |  Manarcadu, Kottayam, Kerala  |  +91 9400233733  |  Powered by Aarpo Global Solutions',W/2,H-4,{align:'center'});
 
   const fname=`WorkOrder_${id}_${cn.replace(/\s+/g,'_')}.pdf`;
+  if(returnBlob){return doc.output('blob');}
   doc.save(fname);
   oc++;localStorage.setItem('waOC',String(oc));updateOid();
   toast('Work Order PDF downloaded!','ok');
 }
 
+// Returns PDF as Blob for WhatsApp sharing
+async function generatePDFBlob(){return generatePDF(true);}
+
 // ── WHATSAPP ──────────────────────────────────────────
-function waShare(){
+async function waShare(){
   if(!items.length){toast('Add at least one product first');return;}
 
   // Pull all order data
@@ -1152,23 +1156,42 @@ function waShare(){
   };
   const fmtAmt = n => 'Rs.' + Math.round(n).toLocaleString('en-IN');
 
-  // WhatsApp bold = *text*  italic = _text_  mono = ```text```  strikethrough = ~text~
-  // Line of dashes for visual separator
+  // ── Try Web Share API first (mobile — shares PDF with images to WhatsApp) ──
+  if(navigator.canShare){
+    toast('Generating PDF for WhatsApp...');
+    try{
+      // Generate the PDF as a blob (reuse the same PDF logic)
+      const pdfBlob=await generatePDFBlob();
+      const fname=`WorkOrder_${id}_${cn.replace(/\s+/g,'_')}.pdf`;
+      const file=new File([pdfBlob],fname,{type:'application/pdf'});
+
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({
+          title:`Wood Art Interio — ${id}`,
+          text:`Work Order ${id} for ${cn}\nGrand Total: ${fmtAmt(grand)} | Balance: ${fmtAmt(bal)}`,
+          files:[file]
+        });
+        toast('Shared via WhatsApp!','ok');
+        return;
+      }
+    }catch(shareErr){
+      if(shareErr.name==='AbortError'){toast('Share cancelled');return;}
+      console.log('Web Share failed, falling back to wa.me link:',shareErr);
+    }
+  }
+
+  // ── Fallback: wa.me text-only link (desktop or older browsers) ──
   const LINE  = '━━━━━━━━━━━━━━━━━━━━━━━';
   const THIN  = '─────────────────────────';
 
-  // Build item rows — right-align totals using monospace
-  // Format: [Qty x Name                    Total]
   const itemRows = items.map((it, i) => {
     const rowTotal = fmtAmt(it.qty * it.unitPrice);
     const num = String(i+1).padStart(2,' ');
-    // Truncate name to 22 chars for clean wrapping
     const name = it.name.length > 24 ? it.name.substring(0,22)+'…' : it.name;
     const qtyStr = `${it.qty} x ${it.unitPrice.toLocaleString('en-IN')}`;
     return `\`\`\`${num}. ${name}\n    ${qtyStr.padEnd(18,' ')} ${rowTotal}\`\`\``;
   }).join('\n');
 
-  // Summary rows in monospace block
   const pad = (label, value, width=24) => {
     const gap = width - label.length;
     return label + ' '.repeat(Math.max(1, gap)) + value;
@@ -1184,11 +1207,9 @@ function waShare(){
     pad('BALANCE DUE',       fmtAmt(bal))   +
     '```';
 
-  // Terms — first 3 only to keep message compact
   const termLines = tm.split('\n').filter(l=>l.trim()).slice(0,3);
   const termsBlock = termLines.map(l => `_${l.trim()}_`).join('\n');
 
-  // Assemble the full invoice message
   const msg = [
     `🪵 *WOOD ART INTERIO*`,
     `_Manarcadu, Kottayam, Kerala 686019_`,
