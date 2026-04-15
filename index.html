@@ -604,16 +604,11 @@ async function beautify(){
   document.getElementById('bBeautify').disabled=true;
   setProgress(15,'Analysing furniture photo...');
 
-  // OpenRouter — free tier, auto-rotates through vision-capable models (April 2026)
-  // Format: OpenAI-compatible messages API
-  const OR_MODELS=[
-    'google/gemma-4-26b-a4b-it:free',
-    'google/gemma-4-31b-it:free',
-    'nvidia/nemotron-nano-12b-v2-vl:free',
-    'meta-llama/llama-3.2-11b-vision-instruct:free',
-  ];
-  const callAI=async(payload,modelIdx=0,attempt=1)=>{
-    const model=OR_MODELS[modelIdx]||OR_MODELS[0];
+  // OpenRouter — uses the official free router that auto-picks working vision models
+  // See: https://openrouter.ai/docs/guides/routing/routers/free-models-router
+  const callAI=async(payload,attempt=1)=>{
+    // openrouter/free auto-detects vision needs from the image in the request
+    const model='openrouter/free';
     // Convert payload to OpenRouter/OpenAI format
     const parts=payload.contents[0].parts;
     const msgContent=[];
@@ -649,19 +644,16 @@ async function beautify(){
     if(data.error){
       const code=data.error.code||data.error.status||0;
       const msg=data.error.message||'Unknown error';
-      const isQuota=code===429||code===402||String(code).includes('quota')||msg.includes('quota')||msg.includes('rate')||msg.includes('free limit');
-      if(isQuota&&modelIdx<OR_MODELS.length-1){
-        setProgress(25,`Model ${model} at limit — trying next model...`);
-        await new Promise(r=>setTimeout(r,1200));
-        return callAI(payload,modelIdx+1,1);
-      }
-      if(code===429&&attempt<=2){
-        setProgress(25,`Rate limit — retrying in ${attempt*3}s...`);
+      // Retry on rate limits or transient errors (up to 3 attempts)
+      if((code===429||code===502||code===503)&&attempt<=3){
+        setProgress(25,`Retrying in ${attempt*3}s... (attempt ${attempt}/3)`);
         await new Promise(r=>setTimeout(r,attempt*3000));
-        return callAI(payload,modelIdx,attempt+1);
+        return callAI(payload,attempt+1);
       }
-      throw new Error(`[${model}] ${code}: ${msg}`);
+      throw new Error(`${code}: ${msg}`);
     }
+    // Log which model was actually used (for debugging)
+    if(data.model)console.log('OpenRouter used model:',data.model);
     // Convert OpenRouter response back to internal format expected by our code
     const text=data.choices?.[0]?.message?.content||'{}';
     return {candidates:[{content:{parts:[{text}]}}]};
