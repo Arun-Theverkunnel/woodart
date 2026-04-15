@@ -624,7 +624,7 @@ async function beautify(){
     formData.append('size','auto');
     formData.append('format','png');
 
-    const rbgResp=await fetch('/.netlify/functions/removebg',{
+    const rbgResp=await fetch('https://api.remove.bg/v1.0/removebg',{
       method:'POST',
       headers:{'X-Api-Key':rbgKey},
       body:formData
