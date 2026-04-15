@@ -29,8 +29,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--warm-white);color:var(--t
 .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text-mid);}
 .btn-outline:hover{border-color:var(--teak);color:var(--teak);background:var(--cream);}
 .btn-success{background:var(--success);color:white;}
-.btn-gemini{background:linear-gradient(135deg,#1a73e8,#34A853);color:white;border:none;}
-.btn-gemini:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,115,232,0.4);}
+.btn-or{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border:none;}
+.btn-or:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,0.4);}
 .btn-sm{padding:6px 13px;font-size:12px;}
 .btn:active{transform:scale(0.97);}
 .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important;}
@@ -105,9 +105,9 @@ textarea{resize:vertical;min-height:68px;}
 @keyframes slideUp{from{transform:translateY(18px);opacity:0;}to{transform:none;opacity:1;}}
 .modal-title{font-family:'Playfair Display',serif;font-size:19px;color:var(--walnut);margin-bottom:1.1rem;}
 .modal-foot{display:flex;gap:9px;justify-content:flex-end;margin-top:1.4rem;}
-.gem-banner{background:linear-gradient(135deg,#E8F0FE,#F0FFF4);border:1px solid #B8D4F8;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px;}
-.gem-banner-txt{font-size:12px;color:#1A3A6B;line-height:1.6;}
-.gem-banner-txt a{color:#1a73e8;font-weight:600;text-decoration:none;}
+.or-banner{background:linear-gradient(135deg,#EEF2FF,#F5F3FF);border:1px solid #C7D2FE;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px;}
+.or-banner-txt{font-size:12px;color:#312E81;line-height:1.6;}
+.or-banner-txt a{color:#6366f1;font-weight:600;text-decoration:none;}
 .tabs{display:flex;border-bottom:2px solid var(--parchment);margin-bottom:1.1rem;}
 .tab{padding:7px 15px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-light);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
 .tab.on{color:var(--walnut);border-bottom-color:var(--amber);}
@@ -136,22 +136,22 @@ textarea{resize:vertical;min-height:68px;}
 .style-pill.on{background:var(--walnut);color:#F5E6CC;border-color:var(--walnut);}
 .progress-wrap{display:none;margin-top:8px;}
 .progress-bar{width:100%;height:5px;background:#E8E0D4;border-radius:3px;overflow:hidden;}
-.progress-fill{height:100%;background:linear-gradient(90deg,#1a73e8,#34A853);border-radius:3px;transition:width .5s ease;width:0%;}
-.progress-lbl{font-size:11px;color:#1a73e8;text-align:center;margin-top:5px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:3px;transition:width .5s ease;width:0%;}
+.progress-lbl{font-size:11px;color:#6366f1;text-align:center;margin-top:5px;}
 /* Before After */
 .ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;}
 .ba-box{position:relative;border-radius:9px;overflow:hidden;border:1.5px solid var(--border);}
 .ba-box img{width:100%;height:150px;object-fit:contain;background:#F5F0E8;display:block;}
 .ba-lbl{position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.6);color:white;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;text-transform:uppercase;}
-.ba-lbl.ai{left:auto;right:6px;background:linear-gradient(135deg,#1a73e8,#34A853);}
-.ai-desc-box{background:linear-gradient(135deg,#E8F0FE,#F0FFF4);border:1px solid #B8D4F8;border-radius:8px;padding:10px;margin-top:10px;font-size:12px;color:#1A3A6B;line-height:1.6;display:none;}
+.ba-lbl.ai{left:auto;right:6px;background:linear-gradient(135deg,#6366f1,#8b5cf6);}
+.ai-desc-box{background:linear-gradient(135deg,#EEF2FF,#F5F3FF);border:1px solid #C7D2FE;border-radius:8px;padding:10px;margin-top:10px;font-size:12px;color:#312E81;line-height:1.6;display:none;}
 .ba-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:9px;}
 .div{height:1px;background:var(--parchment);margin:.85rem 0;}
 .badge-count{background:var(--amber);color:white;width:19px;height:19px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-left:5px;}
 .toast{position:fixed;bottom:1.75rem;left:50%;transform:translateX(-50%) translateY(10px);padding:11px 22px;border-radius:28px;font-size:13px;font-weight:500;box-shadow:0 8px 28px rgba(0,0,0,0.25);z-index:999;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;background:var(--walnut);color:#F5E6CC;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{background:var(--success);}
-.toast.ai{background:linear-gradient(135deg,#1a73e8,#34A853);}
+.toast.ai{background:linear-gradient(135deg,#6366f1,#8b5cf6);}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
 @media(max-width:860px){.main{grid-template-columns:1fr;}.fg{grid-template-columns:1fr;}}
 </style>
@@ -254,16 +254,16 @@ textarea{resize:vertical;min-height:68px;}
   <div class="modal">
     <div class="modal-title">&#10024; Add Custom Product</div>
 
-    <div class="gem-banner">
+    <div class="or-banner">
       <div style="font-size:22px">&#127760;</div>
-      <div class="gem-banner-txt">
-        <strong style="color:#1a73e8">Powered by OpenRouter AI</strong> — Free, 50+ models, no credit card.<br>
+      <div class="or-banner-txt">
+        <strong style="color:#6366f1">Powered by OpenRouter AI</strong> — Free, 50+ models, no credit card.<br>
         Get key at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> &rarr; <strong>Create Key</strong>. Paste below once &mdash; saved automatically.
       </div>
     </div>
     <div class="fi" style="margin-bottom:12px;">
       <div class="lbl">OpenRouter API Key</div>
-      <input type="password" id="gemKey" placeholder="sk-or-v1-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" autocomplete="off"/>
+      <input type="password" id="orKey" placeholder="sk-or-v1-..." autocomplete="off"/>
     </div>
 
     <div class="div"></div>
@@ -327,7 +327,7 @@ textarea{resize:vertical;min-height:68px;}
 
       <!-- KEY NOTICE -->
       <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;margin-bottom:11px;font-size:12px;color:#78350F;line-height:1.6;">
-        &#128073; <strong>Furniture stays unchanged.</strong> Gemini AI will only replace the background behind the furniture with a beautiful premium setting — the furniture's colour, shape, and texture remain 100% original.
+        &#128073; <strong>Furniture stays unchanged.</strong> AI will only replace the background behind the furniture with a beautiful premium setting — the furniture's colour, shape, and texture remain 100% original.
       </div>
 
       <div class="lbl" style="margin-bottom:7px;">Choose Background Style</div>
@@ -337,13 +337,13 @@ textarea{resize:vertical;min-height:68px;}
         <div class="style-pill" data-style="luxury" onclick="pickStyle(this)">&#10024; Luxury Showroom</div>
       </div>
 
-      <button class="btn btn-gemini btn-sm" id="bBeautify" onclick="beautify()" style="width:100%;justify-content:center;padding:10px;">
+      <button class="btn btn-or btn-sm" id="bBeautify" onclick="beautify()" style="width:100%;justify-content:center;padding:10px;">
         &#10024; Beautify Background with AI
       </button>
 
       <div class="progress-wrap" id="progWrap">
         <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
-        <div class="progress-lbl" id="progLbl">Sending to Gemini...</div>
+        <div class="progress-lbl" id="progLbl">Sending to OpenRouter AI...</div>
       </div>
 
       <!-- Before / After -->
@@ -355,7 +355,7 @@ textarea{resize:vertical;min-height:68px;}
         <div class="ai-desc-box" id="aiDescBox">&#129302; <strong>AI Description:</strong> <span id="aiDescTxt"></span></div>
         <div class="ba-actions">
           <button class="btn btn-outline btn-sm" onclick="useOrig()">Use Original</button>
-          <button class="btn btn-gemini btn-sm" onclick="useEnhanced()">Use AI Version &#10024;</button>
+          <button class="btn btn-or btn-sm" onclick="useEnhanced()">Use AI Version &#10024;</button>
         </div>
       </div>
     </div>
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const dd=new Date();dd.setDate(dd.getDate()+14);
   document.getElementById('dDate').value=dd.toISOString().split('T')[0];
   const saved=localStorage.getItem('orKey');
-  if(saved)document.getElementById('gemKey').value=saved;
+  if(saved)document.getElementById('orKey').value=saved;
   updateOid();renderProds();
 });
 
@@ -581,12 +581,12 @@ function pickStyle(el){
 }
 
 // ══════════════════════════════════════════════════════
-// GEMINI AI — BACKGROUND BEAUTIFICATION
+// OPENROUTER AI — BACKGROUND BEAUTIFICATION
 // The furniture itself is NEVER changed — only the background
 // ══════════════════════════════════════════════════════
 async function beautify(){
-  const key=document.getElementById('gemKey').value.trim();
-  if(!key){toast('Please enter your Gemini API key first');return;}
+  const key=document.getElementById('orKey').value.trim();
+  if(!key){toast('Please enter your OpenRouter API key first');return;}
   if(!rawB64){toast('Please upload or capture a photo first');return;}
   localStorage.setItem('orKey',key);
 
@@ -612,9 +612,9 @@ async function beautify(){
     'google/gemini-flash-1.5:free',
     'meta-llama/llama-3.2-90b-vision-instruct:free',
   ];
-  const callGemini=async(payload,modelIdx=0,attempt=1)=>{
+  const callAI=async(payload,modelIdx=0,attempt=1)=>{
     const model=OR_MODELS[modelIdx]||OR_MODELS[0];
-    // Convert Gemini-style payload to OpenRouter/OpenAI format
+    // Convert payload to OpenRouter/OpenAI format
     const parts=payload.contents[0].parts;
     const msgContent=[];
     for(const p of parts){
@@ -653,21 +653,21 @@ async function beautify(){
       if(isQuota&&modelIdx<OR_MODELS.length-1){
         setProgress(25,`Model ${model} at limit — trying next model...`);
         await new Promise(r=>setTimeout(r,1200));
-        return callGemini(payload,modelIdx+1,1);
+        return callAI(payload,modelIdx+1,1);
       }
       if(code===429&&attempt<=2){
         setProgress(25,`Rate limit — retrying in ${attempt*3}s...`);
         await new Promise(r=>setTimeout(r,attempt*3000));
-        return callGemini(payload,modelIdx,attempt+1);
+        return callAI(payload,modelIdx,attempt+1);
       }
       throw new Error(`[${model}] ${code}: ${msg}`);
     }
-    // Convert OpenRouter response back to Gemini-style format expected by our code
+    // Convert OpenRouter response back to internal format expected by our code
     const text=data.choices?.[0]?.message?.content||'{}';
     return {candidates:[{content:{parts:[{text}]}}]};
   };
 
-  // Background spec presets — used as defaults and hints to Gemini
+  // Background spec presets — used as defaults and hints
   const bgPresets={
     studio:{bg_gradient:{type:'linear',stops:[{pos:0,color:'#FFFFFF'},{pos:1,color:'#F2EEE8'}],x0:0,y0:0,x1:0,y1:600},floor_line_y:430,floor_color:'#E5E0D8',floor_opacity:0.35,has_reflection:false,ambient_light_color:'#FFFDF8',ambient_light_opacity:0.1,vignette_color:'#000000',vignette_opacity:0.1},
     warm:{bg_gradient:{type:'linear',stops:[{pos:0,color:'#FDF5E6'},{pos:1,color:'#E8D5B0'}],x0:0,y0:0,x1:0,y1:600},floor_line_y:415,floor_color:'#D4B896',floor_opacity:0.5,has_reflection:false,ambient_light_color:'#FFD580',ambient_light_opacity:0.22,vignette_color:'#000000',vignette_opacity:0.15},
@@ -676,9 +676,9 @@ async function beautify(){
 
   try{
     // SINGLE API CALL — analyse photo + get description (1 call instead of 2 = half the quota)
-    setProgress(30,'Gemini AI analysing your furniture photo...');
+    setProgress(30,'AI analysing your furniture photo...');
 
-    const combinedData=await callGemini({
+    const combinedData=await callAI({
       contents:[{parts:[
         {inline_data:{mime_type:rawMime,data:rawB64}},
         {text:'Analyse this furniture photo. Respond with ONLY valid JSON, no markdown:\n{"furniture_type":"type","exact_colors":"colors","material":"material","product_description":"2 professional sentences for a Kerala premium furniture store brochure"}'}
