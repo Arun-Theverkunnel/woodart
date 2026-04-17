@@ -535,13 +535,14 @@ textarea{resize:vertical;min-height:68px;}
 
     <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
 
-    <div style="font-size:12px;font-weight:700;color:var(--walnut);margin-bottom:10px;">&#10024; Gemini AI — Background Beautifier</div>
+    <div style="font-size:12px;font-weight:700;color:var(--walnut);margin-bottom:10px;">&#128444;&#65039; AI Background Removal Keys</div>
     <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:12px;font-size:11.5px;color:var(--text-mid);line-height:1.7;">
-      Free Gemini API key from <a href="https://aistudio.google.com" target="_blank" style="color:var(--teak);">aistudio.google.com</a> → <strong>Get API key</strong>. 1,500 free requests/day.
+      <strong style="color:#2D6A4F">remove.bg</strong> removes background (50 free/mo) — get key at <a href="https://www.remove.bg/api#api-key" target="_blank" style="color:var(--teak);">remove.bg/api</a><br>
+      <strong style="color:#6366f1">OpenRouter</strong> writes AI description (free) — get key at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--teak);">openrouter.ai/keys</a>
     </div>
-    <div class="fi" style="margin-bottom:6px;">
-      <div class="lbl">Gemini API Key</div>
-      <input type="password" id="gemKey" placeholder="AIzaSy..." autocomplete="off"/>
+    <div class="fg" style="margin-bottom:6px;">
+      <div class="fi"><div class="lbl">remove.bg API Key *</div><input type="password" id="rbgKey" placeholder="paste remove.bg key..." autocomplete="off"/></div>
+      <div class="fi"><div class="lbl">OpenRouter Key (optional)</div><input type="password" id="orKey" placeholder="sk-or-v1-..." autocomplete="off"/></div>
     </div>
 
     <div class="modal-foot">
@@ -705,8 +706,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('oDate').value=new Date().toISOString().split('T')[0];
   const dd=new Date();dd.setDate(dd.getDate()+14);
   document.getElementById('dDate').value=dd.toISOString().split('T')[0];
-  const saved=localStorage.getItem('gemKey');
-  if(saved)document.getElementById('gemKey').value=saved;
+  const savedRbg=localStorage.getItem('rbgKey');
+  if(savedRbg)document.getElementById('rbgKey').value=savedRbg;
+  const savedOr=localStorage.getItem('orKey');
+  if(savedOr)document.getElementById('orKey').value=savedOr;
   updateOid();renderProds();
   // Show order type selection on first load
   showOTS();
@@ -939,146 +942,114 @@ function pickStyle(el){
 // GEMINI AI — BACKGROUND BEAUTIFICATION
 // The furniture itself is NEVER changed — only the background
 // ══════════════════════════════════════════════════════
+// BACKGROUND BEAUTIFICATION — remove.bg + Canvas composite
+// Step 1: remove.bg strips the background (real AI removal)
+// Step 2: Canvas draws premium studio background
+// Step 3: Transparent furniture composited on top
+// Step 4: (Optional) OpenRouter generates product description
+// ══════════════════════════════════════════════════════
 async function beautify(){
-  const key=document.getElementById('gemKey').value.trim();
-  if(!key){toast('Please enter your Gemini API key first');return;}
+  const rbgKey=localStorage.getItem('rbgKey')||'';
+  if(!rbgKey){toast('Please add your remove.bg API key in ⚙️ Settings first');return;}
   if(!rawB64){toast('Please upload or capture a photo first');return;}
-  localStorage.setItem('gemKey',key);
 
+  const orKey=localStorage.getItem('orKey')||'';
   const category=document.getElementById('pCat').value;
-  const prodName=document.getElementById('pName').value||category;
-
-  const bgDescriptions={
-    studio:'a seamless pure white studio photography background with very subtle soft gradient from white at top to very light warm grey (#F8F5F0) at bottom, professional product photography lighting, gentle diffused shadows directly below the furniture, absolutely clean and minimal',
-    warm:'a warm elegant Kerala-inspired interior background: soft ivory walls, warm amber accent lighting from the left side, a subtle hint of polished marble floor below, gentle warm bokeh in far background, premium furniture showroom atmosphere, rich and inviting',
-    luxury:'a high-end luxury showroom background: deep charcoal grey wall (#2C2C2C) with very subtle texture, dramatic spot lighting highlighting the furniture from above-left, deep gloss marble floor reflection below, ultra-premium ambience like a 5-star hotel suite'
-  };
-
-  const bgDesc=bgDescriptions[chosenStyle];
 
   document.getElementById('bBeautify').disabled=true;
-  setProgress(15,'Analysing furniture photo...');
+  setProgress(10,'Sending to remove.bg...');
+
+  const bgPresets={
+    studio:{bg_gradient:{type:'linear',stops:[{pos:0,color:'#FFFFFF'},{pos:1,color:'#F2EEE8'}],x0:0,y0:0,x1:0,y1:600},floor_line_y:430,floor_color:'#E5E0D8',floor_opacity:0.35,has_reflection:false,ambient_light_color:'#FFFDF8',ambient_light_opacity:0.1,vignette_color:'#000000',vignette_opacity:0.08},
+    warm:{bg_gradient:{type:'linear',stops:[{pos:0,color:'#FDF5E6'},{pos:1,color:'#E8D5B0'}],x0:0,y0:0,x1:0,y1:600},floor_line_y:415,floor_color:'#D4B896',floor_opacity:0.5,has_reflection:false,ambient_light_color:'#FFD580',ambient_light_opacity:0.22,vignette_color:'#000000',vignette_opacity:0.15},
+    luxury:{bg_gradient:{type:'linear',stops:[{pos:0,color:'#2C2C2C'},{pos:1,color:'#181818'}],x0:0,y0:0,x1:0,y1:600},floor_line_y:400,floor_color:'#3A3A3A',floor_opacity:0.7,has_reflection:true,ambient_light_color:'#607090',ambient_light_opacity:0.22,vignette_color:'#000000',vignette_opacity:0.45}
+  };
 
   try{
-    // STEP 1: Analyse the furniture to get exact description for the product field
-    setProgress(25,'Reading furniture details...');
+    setProgress(25,'Removing background with AI...');
 
-    const analysisResp=await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        contents:[{parts:[
-          {inline_data:{mime_type:rawMime,data:rawB64}},
-          {text:`Analyse this furniture photo and respond with ONLY valid JSON, no markdown, no explanation:
-{
-  "furniture_type": "specific furniture type",
-  "exact_colors": "describe every color/finish you see very precisely",
-  "material": "material description",
-  "product_description": "2 professional sentences for a Kerala premium furniture store brochure"
-}`}
-        ]}],
-        generationConfig:{temperature:0.2,maxOutputTokens:400}
-      })}
-    );
+    const byteChars=atob(rawB64);
+    const byteArr=new Uint8Array(byteChars.length);
+    for(let i=0;i<byteChars.length;i++)byteArr[i]=byteChars.charCodeAt(i);
+    const blob=new Blob([byteArr],{type:rawMime});
 
-    const ad=await analysisResp.json();
-    if(ad.error)throw new Error(ad.error.message);
-    setProgress(45,'Generating beautified background...');
+    const formData=new FormData();
+    formData.append('image_file',blob,'photo.jpg');
+    formData.append('size','auto');
+    formData.append('format','png');
 
-    let aTxt=ad.candidates[0].content.parts[0].text.trim().replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    let analysis;
-    try{analysis=JSON.parse(aTxt);}
-    catch(e){analysis={exact_colors:'as in original photo',product_description:`Premium ${category} furniture for Indian homes.`};}
+    const rbgResp=await fetch('https://api.remove.bg/v1.0/removebg',{
+      method:'POST',
+      headers:{'X-Api-Key':rbgKey},
+      body:formData
+    });
 
-    // Auto-fill description
-    if(analysis.product_description&&!document.getElementById('pDesc').value){
-      document.getElementById('pDesc').value=analysis.product_description;
+    if(!rbgResp.ok){
+      const errText=await rbgResp.text();
+      let errMsg='Background removal failed';
+      try{const e=JSON.parse(errText);errMsg=e.errors?.[0]?.title||errMsg;}catch(x){}
+      throw new Error(`remove.bg ${rbgResp.status}: ${errMsg}`);
     }
 
-    // STEP 2: Generate beautified image — FURNITURE UNCHANGED, only background replaced
-    // We use Gemini to generate an HTML canvas composite:
-    // - Draw a beautiful background using canvas gradient/CSS
-    // - Overlay the original photo with background-removal simulation using canvas compositing
+    setProgress(55,'Background removed! Building studio shot...');
 
-    setProgress(65,'Creating premium background...');
+    const rbgBlob=await rbgResp.blob();
+    const transparentB64=await new Promise(resolve=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result);
+      reader.readAsDataURL(rbgBlob);
+    });
 
-    // Ask Gemini for precise background CSS/canvas instructions
-    const bgResp=await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        contents:[{parts:[
-          {text:`You are a CSS/Canvas expert creating a premium background for a furniture product photo.
-
-Create a detailed HTML Canvas 2D drawing instruction set for this background style:
-"${bgDesc}"
-
-Canvas size: 800x600px
-
-Respond with ONLY a valid JSON object (no markdown):
-{
-  "bg_gradient": {
-    "type": "linear or radial",
-    "stops": [{"pos": 0, "color": "#hex"}, {"pos": 1, "color": "#hex"}],
-    "x0": 0, "y0": 0, "x1": 0, "y1": 600
-  },
-  "floor_line_y": 420,
-  "floor_color": "#hex",
-  "floor_opacity": 0.0 to 1.0,
-  "has_reflection": true or false,
-  "ambient_light_color": "#hex",
-  "ambient_light_opacity": 0.0 to 0.3,
-  "vignette_color": "#hex",
-  "vignette_opacity": 0.0 to 0.4
-}`}
-        ]}],
-        generationConfig:{temperature:0.3,maxOutputTokens:400}
-      })}
-    );
-
-    const bgd=await bgResp.json();
-    if(bgd.error)throw new Error(bgd.error.message);
-
-    let bgTxt=bgd.candidates[0].content.parts[0].text.trim().replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    let bgSpec;
-    try{bgSpec=JSON.parse(bgTxt);}
-    catch(e){
-      bgSpec={
-        bg_gradient:{type:'linear',stops:[{pos:0,color:'#ffffff'},{pos:1,color:'#f0ece5'}],x0:0,y0:0,x1:0,y1:600},
-        floor_line_y:420,floor_color:'#e8e0d4',floor_opacity:0.5,
-        has_reflection:false,ambient_light_color:'#FFF8F0',ambient_light_opacity:0.1,
-        vignette_color:'#000000',vignette_opacity:0.08
-      };
-    }
-
-    setProgress(80,'Compositing furniture on premium background...');
-
-    // STEP 3: Build the composite on canvas
-    // Load original image, draw beautiful background, then overlay the furniture
-    // using screen/multiply compositing to preserve furniture while replacing flat backgrounds
-    const beautifiedDataUrl = await buildComposite(rawB64,rawMime,bgSpec);
+    setProgress(75,'Compositing on premium background...');
+    const bgSpec=bgPresets[chosenStyle]||bgPresets.studio;
+    const beautifiedDataUrl=await buildComposite(transparentB64,'image/png',bgSpec);
 
     beautifiedUrl=beautifiedDataUrl;
     document.getElementById('baEnhanced').src=beautifiedUrl;
 
-    setProgress(100,'Done!');
-    setTimeout(()=>{document.getElementById('progWrap').style.display='none';},800);
-    setBadge('done','✓ Background beautified!');
-    document.getElementById('baSection').style.display='block';
+    setProgress(90,'Almost done...');
 
-    if(analysis.product_description){
-      document.getElementById('aiDescTxt').textContent=analysis.product_description;
-      document.getElementById('aiDescBox').style.display='block';
+    if(orKey&&!document.getElementById('pDesc').value){
+      try{
+        setProgress(92,'Generating AI description...');
+        const descResp=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':`Bearer ${orKey}`,'HTTP-Referer':'https://wood-art-manarcadu.netlify.app','X-Title':'Wood Art Interio'},
+          body:JSON.stringify({
+            model:'openrouter/auto',
+            messages:[{role:'user',content:[
+              {type:'image_url',image_url:{url:`data:${rawMime};base64,${rawB64}`}},
+              {type:'text',text:'Analyse this furniture photo. Respond with ONLY valid JSON, no markdown:\n{"product_description":"2 professional sentences for a Kerala premium furniture store brochure"}'}
+            ]}],
+            max_tokens:200,temperature:0.2
+          })
+        });
+        const descData=await descResp.json();
+        const txt=descData.choices?.[0]?.message?.content||'';
+        const clean=txt.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+        const parsed=JSON.parse(clean);
+        if(parsed.product_description){
+          document.getElementById('pDesc').value=parsed.product_description;
+          document.getElementById('aiDescTxt').textContent=parsed.product_description;
+          document.getElementById('aiDescBox').style.display='block';
+        }
+      }catch(descErr){
+        console.log('AI description skipped:',descErr.message);
+      }
     }
 
+    setProgress(100,'Done!');
+    setTimeout(()=>{document.getElementById('progWrap').style.display='none';},800);
+    setBadge('done','✓ Background removed!');
+    document.getElementById('baSection').style.display='block';
     document.getElementById('bBeautify').disabled=false;
-    toast('Background beautified — furniture unchanged!','ai');
+    toast('Background removed & studio shot created!','ai');
 
   }catch(err){
     setBadge('err','Error');
     document.getElementById('progWrap').style.display='none';
     document.getElementById('bBeautify').disabled=false;
-    toast('Error: '+err.message.substring(0,60));
+    toast('Error: '+err.message.substring(0,80));
     console.error(err);
   }
 }
@@ -1991,8 +1962,10 @@ function rmGenerateOrder(){
 function openSettings(){
   const url = localStorage.getItem('sheetUrl') || '';
   document.getElementById('sheetUrl').value = url;
-  const gem = localStorage.getItem('gemKey') || '';
-  document.getElementById('gemKey').value = gem;
+  const rbg = localStorage.getItem('rbgKey') || '';
+  document.getElementById('rbgKey').value = rbg;
+  const or_ = localStorage.getItem('orKey') || '';
+  document.getElementById('orKey').value = or_;
   const banner = document.getElementById('sheetStatusBanner');
   if(url){
     banner.style.display = 'block';
@@ -2022,9 +1995,12 @@ function saveSettings(){
   }
   if(url) localStorage.setItem('sheetUrl', url);
   else    localStorage.removeItem('sheetUrl');
-  const gem = document.getElementById('gemKey').value.trim();
-  if(gem) localStorage.setItem('gemKey', gem);
-  else    localStorage.removeItem('gemKey');
+  const rbg = document.getElementById('rbgKey').value.trim();
+  if(rbg) localStorage.setItem('rbgKey', rbg);
+  else    localStorage.removeItem('rbgKey');
+  const or_ = document.getElementById('orKey').value.trim();
+  if(or_) localStorage.setItem('orKey', or_);
+  else    localStorage.removeItem('orKey');
   closeSettings();
   toast('Settings saved!', 'ok');
 }
