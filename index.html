@@ -154,6 +154,30 @@ textarea{resize:vertical;min-height:68px;}
 .toast.ai{background:linear-gradient(135deg,#1a73e8,#34A853);}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
 @media(max-width:860px){.main{grid-template-columns:1fr;}.fg{grid-template-columns:1fr;}}
+@media(max-width:600px){
+  .topbar{padding:0 .75rem;height:54px;}
+  .brand-name{font-size:14px;} .brand-sub{display:none;}
+  .top-btns{gap:5px;}
+  .btn{padding:6px 10px;font-size:12px;}
+  .cats{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .cats::-webkit-scrollbar{display:none;}
+}
+
+/* ── LOGIN SCREEN ────────────────────────────────────── */
+#loginScreen{position:fixed;inset:0;background:var(--walnut);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;gap:0;}
+.login-logo{width:64px;height:64px;background:var(--amber);border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;color:white;font-size:30px;margin:0 auto 16px;}
+.login-title{font-family:'Playfair Display',serif;color:#F5E6CC;font-size:1.6rem;font-weight:700;text-align:center;}
+.login-sub{color:#A08060;font-size:12px;margin-top:6px;margin-bottom:2rem;text-align:center;}
+.pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:1.5rem;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:transparent;transition:all .15s;}
+.pin-dot.filled{background:var(--amber);border-color:var(--amber);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center;}
+.pin-key{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);color:#F5E6CC;font-size:22px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;font-family:'DM Sans',sans-serif;}
+.pin-key:active{background:rgba(200,134,26,0.4);border-color:var(--amber);transform:scale(.94);}
+.pin-key.zero{grid-column:2;}
+.pin-key.del{font-size:18px;}
+.pin-error{color:#FCA5A5;font-size:12px;text-align:center;margin-top:10px;min-height:18px;}
+.pin-hint{color:#8B7355;font-size:11px;text-align:center;margin-top:14px;}
 
 /* ── ORDER TYPE SELECTION SCREEN ─────────────────────── */
 #otsScreen{position:fixed;inset:0;background:var(--walnut);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;gap:0;}
@@ -163,6 +187,11 @@ textarea{resize:vertical;min-height:68px;}
 .ots-sub{color:#A08060;font-size:12px;margin-top:4px;}
 .ots-prompt{color:#D4B483;font-size:13px;font-weight:600;margin-bottom:1.5rem;text-align:center;}
 .ots-cards{display:flex;gap:1.25rem;flex-wrap:wrap;justify-content:center;}
+@media(max-width:500px){
+  .ots-cards{flex-direction:column;width:100%;max-width:320px;}
+  .ots-card{width:100%;padding:1.5rem 1.25rem;}
+  .ots-card-icon{font-size:40px;margin-bottom:.6rem;}
+}
 .ots-card{background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.12);border-radius:16px;padding:2rem 2rem 1.75rem;cursor:pointer;transition:all .22s;text-align:center;width:210px;}
 .ots-card:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,0.4);}
 .ots-card.rm:hover{background:rgba(45,106,79,0.25);border-color:#34A853;}
@@ -240,9 +269,39 @@ textarea{resize:vertical;min-height:68px;}
 <body>
 
 <!-- ═══════════════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-logo">W</div>
+  <div class="login-title">Wood Art Interio</div>
+  <div class="login-sub">Enter your PIN to continue</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-key" onclick="pinKey('1')">1</button>
+    <button class="pin-key" onclick="pinKey('2')">2</button>
+    <button class="pin-key" onclick="pinKey('3')">3</button>
+    <button class="pin-key" onclick="pinKey('4')">4</button>
+    <button class="pin-key" onclick="pinKey('5')">5</button>
+    <button class="pin-key" onclick="pinKey('6')">6</button>
+    <button class="pin-key" onclick="pinKey('7')">7</button>
+    <button class="pin-key" onclick="pinKey('8')">8</button>
+    <button class="pin-key" onclick="pinKey('9')">9</button>
+    <button class="pin-key zero" onclick="pinKey('0')">0</button>
+    <button class="pin-key del" onclick="pinDel()">&#9003;</button>
+  </div>
+  <div class="pin-error" id="pinError"></div>
+  <div class="pin-hint" id="pinHint">Default PIN: 1234 &nbsp;·&nbsp; Change in ⚙️ Settings</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
      SCREEN 0 — ORDER TYPE SELECTION
 ═══════════════════════════════════════════════════ -->
-<div id="otsScreen">
+<div id="otsScreen" style="display:none;">
   <div class="ots-brand">
     <div class="ots-logo">W</div>
     <div class="ots-title">Wood Art Interio</div>
@@ -259,7 +318,7 @@ textarea{resize:vertical;min-height:68px;}
       <div class="ots-card-tag">&#9679; In Stock Items</div>
     </div>
     <div class="ots-card co" onclick="selectMode('custom')">
-      <div class="ots-card-icon">&#128393;</div>
+      <div class="ots-card-icon">🎨</div>
       <div class="ots-card-title">Custom Order</div>
       <div class="ots-card-desc">Choose base product, fabric, colour, size &amp; finish. 20-day delivery.</div>
       <div class="ots-card-tag">&#9679; Made to Order</div>
@@ -535,6 +594,14 @@ textarea{resize:vertical;min-height:68px;}
 
     <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
 
+    <div style="font-size:12px;font-weight:700;color:var(--walnut);margin-bottom:10px;">&#128274; App PIN</div>
+    <div class="fi" style="margin-bottom:12px;">
+      <div class="lbl">4-digit PIN (default: 1234)</div>
+      <input type="password" id="appPin" placeholder="Enter new 4-digit PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" autocomplete="off"/>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
+
     <div style="font-size:12px;font-weight:700;color:var(--walnut);margin-bottom:10px;">&#128444;&#65039; AI Background Removal Keys</div>
     <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:12px;font-size:11.5px;color:var(--text-mid);line-height:1.7;">
       <strong style="color:#2D6A4F">remove.bg</strong> removes background (50 free/mo) — get key at <a href="https://www.remove.bg/api#api-key" target="_blank" style="color:var(--teak);">remove.bg/api</a><br>
@@ -711,9 +778,48 @@ document.addEventListener('DOMContentLoaded',()=>{
   const savedOr=localStorage.getItem('orKey');
   if(savedOr)document.getElementById('orKey').value=savedOr;
   updateOid();renderProds();
-  // Show order type selection on first load
-  showOTS();
+  // Show login screen on first load
+  showLogin();
 });
+
+// ─── PIN / LOGIN ──────────────────────────────────────────
+let pinEntry = '';
+function showLogin(){
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('otsScreen').style.display   = 'none';
+  pinEntry = '';
+  updatePinDots();
+  document.getElementById('pinError').textContent = '';
+  const hasPin = localStorage.getItem('appPin');
+  document.getElementById('pinHint').style.display = hasPin ? 'none' : 'block';
+}
+function pinKey(d){
+  if(pinEntry.length >= 4) return;
+  pinEntry += d;
+  updatePinDots();
+  if(pinEntry.length === 4) checkPin();
+}
+function pinDel(){
+  pinEntry = pinEntry.slice(0,-1);
+  updatePinDots();
+  document.getElementById('pinError').textContent = '';
+}
+function updatePinDots(){
+  for(let i=0;i<4;i++){
+    document.getElementById('pd'+i).classList.toggle('filled', i < pinEntry.length);
+  }
+}
+function checkPin(){
+  const correct = localStorage.getItem('appPin') || '1234';
+  if(pinEntry === correct){
+    document.getElementById('loginScreen').style.display = 'none';
+    showOTS();
+  } else {
+    document.getElementById('pinError').textContent = 'Incorrect PIN. Try again.';
+    pinEntry = '';
+    setTimeout(()=>{ updatePinDots(); },300);
+  }
+}
 
 // ─── SHOW ORDER TYPE SELECTION SCREEN ───────────────────
 function showOTS(){
@@ -1994,6 +2100,7 @@ function openSettings(){
   document.getElementById('rbgKey').value = rbg;
   const or_ = localStorage.getItem('orKey') || '';
   document.getElementById('orKey').value = or_;
+  document.getElementById('appPin').value = '';
   const banner = document.getElementById('sheetStatusBanner');
   if(url){
     banner.style.display = 'block';
@@ -2029,6 +2136,11 @@ function saveSettings(){
   const or_ = document.getElementById('orKey').value.trim();
   if(or_) localStorage.setItem('orKey', or_);
   else    localStorage.removeItem('orKey');
+  const newPin = document.getElementById('appPin').value.trim();
+  if(newPin){
+    if(!/^\d{4}$/.test(newPin)){toast('PIN must be exactly 4 digits');return;}
+    localStorage.setItem('appPin', newPin);
+  }
   closeSettings();
   toast('Settings saved!', 'ok');
 }
