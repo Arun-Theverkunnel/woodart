@@ -1217,9 +1217,10 @@ function addCustom(){
 // ══════════════════════════════════════════════════════
 // PDF GENERATION — Images embedded correctly as JPEG
 // ══════════════════════════════════════════════════════
-async function generatePDF(){
-  if(!items.length){toast('Please add at least one product');return;}
-  toast('Building PDF...');
+async function generatePDFBlob(){return generatePDF(true);}
+async function generatePDF(returnBlob=false){
+  if(!items.length){if(!returnBlob)toast('Please add at least one product');return null;}
+  if(!returnBlob)toast('Building PDF...');
 
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -1461,13 +1462,14 @@ async function generatePDF(){
   doc.text('Wood Art Interio  |  Manarcadu, Kottayam, Kerala  |  +91 9400233733  |  Powered by Aarpo Global Solutions',W/2,H-4,{align:'center'});
 
   const fname=`WorkOrder_${id}_${cn.replace(/\s+/g,'_')}.pdf`;
+  if(returnBlob){return doc.output('blob');}
   doc.save(fname);
   oc++;localStorage.setItem('waOC',String(oc));updateOid();
   toast('Work Order PDF downloaded!','ok');
 }
 
 // ── WHATSAPP ──────────────────────────────────────────
-function waShare(){
+async function waShare(){
   if(!items.length){toast('Add at least one product first');return;}
 
   // Pull all order data
@@ -1570,6 +1572,31 @@ function waShare(){
 
   const ph = document.getElementById('cPhone').value.replace(/\D/g,'');
   const waNum = ph.startsWith('91') ? ph : '91' + ph;
+
+  // ── Try Web Share API first (mobile — shares PDF directly to WhatsApp) ──
+  if(navigator.canShare){
+    toast('Generating PDF for WhatsApp...');
+    try{
+      const pdfBlob=await generatePDFBlob();
+      const id2=document.getElementById('oid').textContent;
+      const fname=`WorkOrder_${id2}_${cn.replace(/\s+/g,'_')}.pdf`;
+      const file=new File([pdfBlob],fname,{type:'application/pdf'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({
+          title:`Wood Art Interio — ${id2}`,
+          text:`Work Order ${id2} for ${cn}\nGrand Total: ${fmtAmt(grand)} | Balance: ${fmtAmt(bal)}`,
+          files:[file]
+        });
+        toast('Shared via WhatsApp!','ok');
+        return;
+      }
+    }catch(shareErr){
+      if(shareErr.name==='AbortError'){toast('Share cancelled');return;}
+      console.log('Web Share failed, falling back to wa.me link:',shareErr);
+    }
+  }
+
+  // ── Fallback: wa.me text link (desktop or older browsers) ──
   window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
 
   // Save to Google Sheet
