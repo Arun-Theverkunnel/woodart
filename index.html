@@ -949,8 +949,9 @@ function pickStyle(el){
 // Step 4: (Optional) OpenRouter generates product description
 // ══════════════════════════════════════════════════════
 async function beautify(){
-  const rbgKey=localStorage.getItem('rbgKey')||'';
+  const rbgKey=localStorage.getItem('rbgKey')||document.getElementById('rbgKey').value.trim()||'';
   if(!rbgKey){toast('Please add your remove.bg API key in ⚙️ Settings first');return;}
+  localStorage.setItem('rbgKey',rbgKey);
   if(!rawB64){toast('Please upload or capture a photo first');return;}
 
   const orKey=localStorage.getItem('orKey')||'';
