@@ -533,6 +533,17 @@ textarea{resize:vertical;min-height:68px;}
       <button class="btn btn-outline btn-sm" onclick="clearSheetUrl()" style="color:var(--danger);border-color:var(--danger);">&#10005; Remove URL</button>
     </div>
 
+    <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--walnut);margin-bottom:10px;">&#10024; Gemini AI — Background Beautifier</div>
+    <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:12px;font-size:11.5px;color:var(--text-mid);line-height:1.7;">
+      Free Gemini API key from <a href="https://aistudio.google.com" target="_blank" style="color:var(--teak);">aistudio.google.com</a> → <strong>Get API key</strong>. 1,500 free requests/day.
+    </div>
+    <div class="fi" style="margin-bottom:6px;">
+      <div class="lbl">Gemini API Key</div>
+      <input type="password" id="gemKey" placeholder="AIzaSy..." autocomplete="off"/>
+    </div>
+
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeSettings()">Cancel</button>
       <button class="btn btn-amber" onclick="saveSettings()">&#10003; Save Settings</button>
@@ -544,18 +555,6 @@ textarea{resize:vertical;min-height:68px;}
 <div class="overlay" id="modal">
   <div class="modal">
     <div class="modal-title">&#10024; Add Custom Product</div>
-
-    <div class="gem-banner">
-      <div style="font-size:22px">G</div>
-      <div class="gem-banner-txt">
-        <strong style="color:#1a73e8">Powered by Google Gemini AI</strong> — Free, 1,500 requests/day.<br>
-        Get key at <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> &rarr; <strong>Get API key</strong>
-      </div>
-    </div>
-    <div class="fi" style="margin-bottom:12px;">
-      <div class="lbl">Gemini API Key</div>
-      <input type="password" id="gemKey" placeholder="AIzaSy..." autocomplete="off"/>
-    </div>
 
     <div class="div"></div>
     <div class="fg">
@@ -1992,6 +1991,8 @@ function rmGenerateOrder(){
 function openSettings(){
   const url = localStorage.getItem('sheetUrl') || '';
   document.getElementById('sheetUrl').value = url;
+  const gem = localStorage.getItem('gemKey') || '';
+  document.getElementById('gemKey').value = gem;
   const banner = document.getElementById('sheetStatusBanner');
   if(url){
     banner.style.display = 'block';
@@ -2021,8 +2022,11 @@ function saveSettings(){
   }
   if(url) localStorage.setItem('sheetUrl', url);
   else    localStorage.removeItem('sheetUrl');
+  const gem = document.getElementById('gemKey').value.trim();
+  if(gem) localStorage.setItem('gemKey', gem);
+  else    localStorage.removeItem('gemKey');
   closeSettings();
-  toast(url ? 'Google Sheet connected! Orders will sync automatically.' : 'Settings cleared.', 'ok');
+  toast('Settings saved!', 'ok');
 }
 
 function clearSheetUrl(){
