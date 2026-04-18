@@ -1585,9 +1585,9 @@ async function generatePDF(returnBlob=false){
   const fname=`WorkOrder_${id}_${cn.replace(/\s+/g,'_')}.pdf`;
   if(returnBlob){return doc.output('blob');}
   doc.save(fname);
+  maybeSaveToSheet(); // capture order ID BEFORE updateOid() increments the counter
   oc++;localStorage.setItem('waOC',String(oc));updateOid();
   toast('Work Order PDF downloaded!','ok');
-  maybeSaveToSheet();
 }
 
 // ── WHATSAPP ──────────────────────────────────────────
@@ -2227,16 +2227,18 @@ async function saveToGoogleSheet(payload){
   if(!url) return; // not configured — silently skip
 
   try{
+    // mode:'no-cors' is required for Apps Script — response is opaque but
+    // the POST body reaches doPost() correctly despite the 302 redirect
     await fetch(url, {
       method : 'POST',
-      // Apps Script requires text/plain to avoid CORS preflight
+      mode   : 'no-cors',
       headers: {'Content-Type': 'text/plain;charset=utf-8'},
       body   : JSON.stringify({action:'saveOrder', ...payload}),
     });
     toast('&#9989; Order saved to Google Sheet','ok');
   } catch(e){
     console.warn('Google Sheet sync failed:', e);
-    toast('⚠️ Google Sheet sync failed — check your URL in Settings');
+    toast('&#9888;&#65039; Sheet sync failed — check URL in Settings');
   }
 }
 
@@ -2247,6 +2249,7 @@ async function syncStockToSheet(product, newStock, orderNumber){
   try{
     await fetch(url, {
       method : 'POST',
+      mode   : 'no-cors',
       headers: {'Content-Type': 'text/plain;charset=utf-8'},
       body   : JSON.stringify({
         action      : 'updateStock',
