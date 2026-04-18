@@ -707,18 +707,25 @@ textarea{resize:vertical;min-height:68px;}
         <div class="progress-lbl" id="progLbl">Sending to remove.bg...</div>
       </div>
 
-      <!-- Before / After -->
-      <div id="baSection" style="display:none">
-        <div class="ba-grid">
-          <div class="ba-box"><img id="baOrig" src="" alt="Original"/><div class="ba-lbl">Original</div></div>
-          <div class="ba-box"><img id="baEnhanced" src="" alt="AI Enhanced"/><div class="ba-lbl ai">&#10024; AI Background</div></div>
+    </div>
+
+    <!-- PHOTO CHOICE PANEL — shown after beautification, replaces AI section -->
+    <div id="choicePanel" style="display:none;">
+      <div class="div"></div>
+      <div style="font-size:12px;font-weight:700;color:var(--walnut);margin-bottom:12px;text-align:center;">&#10024; Background removed! Choose which photo to use:</div>
+      <div class="ai-desc-box" id="aiDescBox" style="margin-bottom:12px;">&#129302; <strong>AI Description:</strong> <span id="aiDescTxt"></span></div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:11px;font-weight:600;color:var(--text-mid);margin-bottom:5px;">Original Photo</div>
+          <img id="baOrig" src="" alt="Original" style="width:100%;border-radius:8px;border:2px solid var(--border);"/>
         </div>
-        <div class="ai-desc-box" id="aiDescBox">&#129302; <strong>AI Description:</strong> <span id="aiDescTxt"></span></div>
-        <div class="ba-actions">
-          <button class="btn btn-outline btn-sm" onclick="useOrig()">Use Original</button>
-          <button class="btn btn-gemini btn-sm" onclick="useEnhanced()">Use AI Version &#10024;</button>
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:11px;font-weight:600;color:#1a73e8;margin-bottom:5px;">&#10024; AI Studio Shot</div>
+          <img id="baEnhanced" src="" alt="AI Enhanced" style="width:100%;border-radius:8px;border:2px solid #1a73e8;"/>
         </div>
       </div>
+      <button class="btn btn-outline" onclick="useOrig()" style="width:100%;justify-content:center;padding:12px;margin-bottom:8px;font-size:14px;">&#128247; Use Original Photo</button>
+      <button class="btn btn-gemini" onclick="useEnhanced()" style="width:100%;justify-content:center;padding:12px;font-size:14px;">&#10024; Use AI Studio Shot</button>
     </div>
 
     <div class="modal-foot">
@@ -1022,12 +1029,14 @@ function showPhotoPreview(du,label){
 }
 function showAiSec(du){
   document.getElementById('aiSec').style.display='block';
-  document.getElementById('baSection').style.display='none';
+  document.getElementById('choicePanel').style.display='none';
   document.getElementById('baOrig').src=du;
   beautifiedUrl=null;
   document.getElementById('aiBadge').style.display='none';
   document.getElementById('progWrap').style.display='none';
   document.getElementById('aiDescBox').style.display='none';
+  document.getElementById('bBeautify').style.display='';
+  document.getElementById('bBeautify').disabled=false;
 }
 function resetPhoto(){
   rawB64=null;rawMime='image/jpeg';beautifiedUrl=null;chosenUrl=null;
@@ -1148,9 +1157,9 @@ async function beautify(){
     setProgress(100,'Done!');
     setTimeout(()=>{document.getElementById('progWrap').style.display='none';},800);
     setBadge('done','✓ Background removed!');
-    document.getElementById('baSection').style.display='block';
-    document.getElementById('bBeautify').style.display='none';
-    toast('Background removed & studio shot created!','ai');
+    document.getElementById('aiSec').style.display='none';
+    document.getElementById('choicePanel').style.display='block';
+    toast('Background removed! Choose which photo to use.','ai');
 
   }catch(err){
     setBadge('err','Error');
@@ -1292,21 +1301,23 @@ function setBadge(type,txt){
   b.className='ai-badge '+type;b.textContent=txt;b.style.display='inline-flex';
 }
 function useOrig(){
-  chosenUrl=document.getElementById('baOrig').src;
+  chosenUrl = rawB64 ? `data:${rawMime};base64,${rawB64}` : document.getElementById('baOrig').src;
   showPhotoPreview(chosenUrl,'Original photo selected');
-  toast('Using original photo');
-  document.getElementById('baSection').style.display='none';
+  document.getElementById('choicePanel').style.display='none';
+  document.getElementById('aiSec').style.display='block';
   document.getElementById('bBeautify').style.display='';
   document.getElementById('bBeautify').disabled=false;
+  toast('Using original photo');
 }
 function useEnhanced(){
-  if(!beautifiedUrl){toast('No AI version yet');return;}
+  if(!beautifiedUrl){toast('No AI version yet — please beautify first');return;}
   chosenUrl=beautifiedUrl;
-  showPhotoPreview(beautifiedUrl,'AI enhanced photo selected');
-  toast('Using AI beautified photo!','ai');
-  document.getElementById('baSection').style.display='none';
+  showPhotoPreview(beautifiedUrl,'AI studio shot selected');
+  document.getElementById('choicePanel').style.display='none';
+  document.getElementById('aiSec').style.display='block';
   document.getElementById('bBeautify').style.display='';
   document.getElementById('bBeautify').disabled=false;
+  toast('Using AI studio shot!','ai');
 }
 
 // ── ADD CUSTOM PRODUCT ─────────────────────────────────
