@@ -2208,7 +2208,7 @@ async function saveToGoogleSheet(payload){
     toast('&#9989; Order saved to Google Sheet','ok');
   } catch(e){
     console.warn('Google Sheet sync failed:', e);
-    // Don't block the user — just log it
+    toast('⚠️ Google Sheet sync failed — check your URL in Settings');
   }
 }
 
