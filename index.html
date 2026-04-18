@@ -688,7 +688,7 @@ textarea{resize:vertical;min-height:68px;}
 
       <!-- KEY NOTICE -->
       <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;margin-bottom:11px;font-size:12px;color:#78350F;line-height:1.6;">
-        &#128073; <strong>Furniture stays unchanged.</strong> Gemini AI will only replace the background behind the furniture with a beautiful premium setting — the furniture's colour, shape, and texture remain 100% original.
+        &#128073; <strong>Furniture stays unchanged.</strong> remove.bg AI will strip the background and place your furniture on a premium studio setting — the colour, shape, and texture remain 100% original.
       </div>
 
       <div class="lbl" style="margin-bottom:7px;">Choose Background Style</div>
@@ -704,7 +704,7 @@ textarea{resize:vertical;min-height:68px;}
 
       <div class="progress-wrap" id="progWrap">
         <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
-        <div class="progress-lbl" id="progLbl">Sending to Gemini...</div>
+        <div class="progress-lbl" id="progLbl">Sending to remove.bg...</div>
       </div>
 
       <!-- Before / After -->
@@ -1159,8 +1159,9 @@ async function beautify(){
     setBadge('err','Error');
     document.getElementById('progWrap').style.display='none';
     document.getElementById('bBeautify').disabled=false;
-    toast('Error: '+err.message.substring(0,80));
-    console.error(err);
+    const msg = err.message||'Unknown error';
+    toast('❌ '+msg.substring(0,120), 'err');
+    console.error('Beautify error:', err);
   }
 }
 
