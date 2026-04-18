@@ -1031,7 +1031,7 @@ function showAiSec(du){
   document.getElementById('aiSec').style.display='block';
   document.getElementById('choicePanel').style.display='none';
   document.getElementById('baOrig').src=du;
-  beautifiedUrl=null;
+  beautifiedUrl=null;chosenUrl=null;
   document.getElementById('aiBadge').style.display='none';
   document.getElementById('progWrap').style.display='none';
   document.getElementById('aiDescBox').style.display='none';
@@ -1304,9 +1304,7 @@ function useOrig(){
   chosenUrl = rawB64 ? `data:${rawMime};base64,${rawB64}` : document.getElementById('baOrig').src;
   showPhotoPreview(chosenUrl,'Original photo selected');
   document.getElementById('choicePanel').style.display='none';
-  document.getElementById('aiSec').style.display='block';
-  document.getElementById('bBeautify').style.display='';
-  document.getElementById('bBeautify').disabled=false;
+  document.getElementById('aiSec').style.display='none';
   toast('Using original photo');
 }
 function useEnhanced(){
@@ -1314,9 +1312,7 @@ function useEnhanced(){
   chosenUrl=beautifiedUrl;
   showPhotoPreview(beautifiedUrl,'AI studio shot selected');
   document.getElementById('choicePanel').style.display='none';
-  document.getElementById('aiSec').style.display='block';
-  document.getElementById('bBeautify').style.display='';
-  document.getElementById('bBeautify').disabled=false;
+  document.getElementById('aiSec').style.display='none';
   toast('Using AI studio shot!','ai');
 }
 
