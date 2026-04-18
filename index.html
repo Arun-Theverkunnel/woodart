@@ -2155,21 +2155,30 @@ async function testSheetConnection(){
   const banner = document.getElementById('sheetStatusBanner');
   banner.style.display = 'block';
   banner.style.background = '#EFF6FF';
+  banner.innerHTML = 'Testing connection...';
   banner.style.border = '1px solid #93C5FD';
   banner.style.color = '#1E40AF';
   banner.innerHTML = '&#9654; Testing connection...';
   try{
-    // Open the URL directly — doGet returns a plain text response
-    const resp = await fetch(url, {method:'GET', mode:'no-cors'});
-    banner.style.background = '#D1FAE5';
-    banner.style.border = '1px solid #6EE7B7';
-    banner.style.color = '#065F46';
-    banner.innerHTML = '&#10003; <strong>Connection successful!</strong> Your Google Sheet is ready to receive orders.';
+    // Fetch without no-cors so we can actually READ the response text
+    const resp = await fetch(url);
+    const text = await resp.text();
+    if(text && text.includes('working')){
+      banner.style.background = '#D1FAE5';
+      banner.style.border = '1px solid #6EE7B7';
+      banner.style.color = '#065F46';
+      banner.innerHTML = '&#10003; <strong>Connection successful!</strong> Your Google Sheet is ready to receive orders.';
+    } else {
+      banner.style.background = '#FEF3C7';
+      banner.style.border = '1px solid #FCD34D';
+      banner.style.color = '#92400E';
+      banner.innerHTML = '&#9888; Connected but got unexpected response. Re-deploy the Apps Script and try again.';
+    }
   } catch(e){
     banner.style.background = '#FEE2E2';
     banner.style.border = '1px solid #FCA5A5';
     banner.style.color = '#991B1B';
-    banner.innerHTML = '&#10005; <strong>Could not connect.</strong> Check the URL and make sure the deployment is set to <strong>Anyone</strong>.';
+    banner.innerHTML = '&#10005; <strong>Could not connect.</strong> Check the URL and make sure the deployment is set to <strong>Anyone</strong>. Error: '+e.message;
   }
 }
 
@@ -2221,7 +2230,7 @@ function doPrint(){
   window.print();
 }
 
-// ── Core save function — sends data via GET params (avoids POST redirect issue) ─
+// ── Core save function — GET+param approach, reads real response ──
 async function saveToGoogleSheet(payload){
   const url = localStorage.getItem('sheetUrl');
   if(!url){
@@ -2230,14 +2239,18 @@ async function saveToGoogleSheet(payload){
   }
 
   try{
-    // Use GET + URL param: Apps Script's POST redirect converts POST→GET losing
-    // the body. Sending as a GET param reaches doGet reliably with no-cors.
     const encoded = encodeURIComponent(JSON.stringify({action:'saveOrder', ...payload}));
-    await fetch(`${url}?payload=${encoded}`, {method:'GET', mode:'no-cors'});
-    toast('&#9989; Order saved to Google Sheet','ok');
+    const resp = await fetch(`${url}?payload=${encoded}`);
+    const json = await resp.json();
+    if(json && json.success){
+      toast('&#9989; Order saved to Google Sheet','ok');
+    } else {
+      console.warn('Sheet save returned error:', json);
+      toast('&#9888;&#65039; Sheet error: '+(json&&json.error||'unknown'));
+    }
   } catch(e){
     console.warn('Google Sheet sync failed:', e);
-    toast('&#9888;&#65039; Sheet sync failed — check URL in Settings');
+    toast('&#9888;&#65039; Sheet sync failed — open Settings and re-test connection');
   }
 }
 
@@ -2254,7 +2267,7 @@ async function syncStockToSheet(product, newStock, orderNumber){
       newStock    : newStock,
       orderNumber : orderNumber,
     }));
-    await fetch(`${url}?payload=${encoded}`, {method:'GET', mode:'no-cors'});
+    await fetch(`${url}?payload=${encoded}`);
   } catch(e){
     console.warn('Stock sync failed:', e);
   }
