@@ -1149,12 +1149,13 @@ async function beautify(){
     setTimeout(()=>{document.getElementById('progWrap').style.display='none';},800);
     setBadge('done','✓ Background removed!');
     document.getElementById('baSection').style.display='block';
-    document.getElementById('bBeautify').disabled=false;
+    document.getElementById('bBeautify').style.display='none';
     toast('Background removed & studio shot created!','ai');
 
   }catch(err){
     setBadge('err','Error');
     document.getElementById('progWrap').style.display='none';
+    document.getElementById('bBeautify').style.display='';
     document.getElementById('bBeautify').disabled=false;
     const msg = err.message||'Unknown error';
     toast('❌ '+msg.substring(0,120), 'err');
@@ -1295,6 +1296,8 @@ function useOrig(){
   showPhotoPreview(chosenUrl,'Original photo selected');
   toast('Using original photo');
   document.getElementById('baSection').style.display='none';
+  document.getElementById('bBeautify').style.display='';
+  document.getElementById('bBeautify').disabled=false;
 }
 function useEnhanced(){
   if(!beautifiedUrl){toast('No AI version yet');return;}
@@ -1302,6 +1305,8 @@ function useEnhanced(){
   showPhotoPreview(beautifiedUrl,'AI enhanced photo selected');
   toast('Using AI beautified photo!','ai');
   document.getElementById('baSection').style.display='none';
+  document.getElementById('bBeautify').style.display='';
+  document.getElementById('bBeautify').disabled=false;
 }
 
 // ── ADD CUSTOM PRODUCT ─────────────────────────────────
