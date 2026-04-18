@@ -1,6 +1,10 @@
 // ═══════════════════════════════════════════════════════════════
 //  WOOD ART INTERIO — Google Apps Script
 // ═══════════════════════════════════════════════════════════════
+// ▶▶ PASTE YOUR SPREADSHEET ID HERE (the long code from your sheet URL)
+// Open your Google Sheet → copy the part between /d/ and /edit in the URL
+var SHEET_ID = 'PASTE_YOUR_SPREADSHEET_ID_HERE';
+// ═══════════════════════════════════════════════════════════════
 
 // ── TEST THIS FIRST — run this from the editor to verify sheet works ──
 function testSaveOrder() {
@@ -70,7 +74,7 @@ function doGet(e) {
 //  SAVE ORDER
 // ═══════════════════════════════════════════════════════════════
 function saveOrder(data) {
-  var ss     = SpreadsheetApp.openById('1n_gbEgikKrWh_4eZKBEEAC3J-qmFA4j_udpECwlnCos');
+  var ss     = SpreadsheetApp.openById(SHEET_ID);
   var orders = getOrCreateSheet(ss, 'Orders', [
     'Order No', 'Type', 'Date', 'Customer Name', 'Phone', 'Address',
     'Products', 'Customisation', 'Delivery Date', 'Take Away?',
@@ -119,7 +123,7 @@ function saveOrder(data) {
 //  UPDATE STOCK
 // ═══════════════════════════════════════════════════════════════
 function updateStock(data) {
-  var ss    = SpreadsheetApp.openById('1n_gbEgikKrWh_4eZKBEEAC3J-qmFA4j_udpECwlnCos');
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
   var stock = getOrCreateSheet(ss, 'Stock', [
     'Product ID', 'Product Name', 'Category', 'Stock Count', 'Last Updated', 'Last Order No'
   ]);

@@ -2244,16 +2244,11 @@ async function saveToGoogleSheet(payload){
   }
 
   try{
-    // Send as URL-encoded form POST: Apps Script reads e.parameter.payload in doPost
-    // This is the most reliable method — no CORS preflight, no redirect body loss
-    const body = new URLSearchParams();
-    body.set('payload', JSON.stringify({action:'saveOrder', ...payload}));
-    const resp = await fetch(url, {
-      method : 'POST',
-      mode   : 'no-cors',  // avoids CORS error reading opaque redirect response
-      body   : body,       // URLSearchParams auto-sets Content-Type: application/x-www-form-urlencoded
-    });
-    // With no-cors the response is opaque — if we get here the request was sent
+    // GET + ?payload= with no-cors: GET requests are never redirected in a way
+    // that loses params, and no-cors avoids CORS errors on the opaque response.
+    // doGet(e) in Apps Script reads e.parameter.payload and writes to sheet.
+    const encoded = encodeURIComponent(JSON.stringify({action:'saveOrder', ...payload}));
+    await fetch(`${url}?payload=${encoded}`, {method:'GET', mode:'no-cors'});
     toast('&#9989; Order saved to Google Sheet','ok');
   } catch(e){
     console.warn('Google Sheet sync failed:', e);
