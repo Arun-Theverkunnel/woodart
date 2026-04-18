@@ -556,7 +556,7 @@ textarea{resize:vertical;min-height:68px;}
     <div class="oactions">
       <button class="btn btn-amber" onclick="generatePDF()" style="width:100%;justify-content:center;padding:11px;">&#11015; Download Work Order PDF</button>
       <button class="btn btn-success" onclick="waShare()" style="width:100%;justify-content:center;">&#128242; Share via WhatsApp</button>
-      <button class="btn btn-outline" onclick="window.print()" style="width:100%;justify-content:center;color:#A08060;border-color:#5A4030;">&#128424; Print</button>
+      <button class="btn btn-outline" onclick="doPrint()" style="width:100%;justify-content:center;color:#A08060;border-color:#5A4030;">&#128424; Print</button>
     </div>
   </div>
 </div>
@@ -778,6 +778,7 @@ let oc=parseInt(localStorage.getItem('waOC')||'1');
 let chosenStyle='studio';
 
 let currentMode = null; // 'rm' or 'custom'
+let orderSheetSaved = false; // dedup flag — reset on new order
 
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('oDate').value=new Date().toISOString().split('T')[0];
@@ -836,6 +837,7 @@ function showOTS(){
   if(currentMode && items.length>0 && !confirm('Start a new order? Current order will be cleared.')) return;
   currentMode = null;
   items = [];
+  orderSheetSaved = false;
   document.getElementById('otsScreen').style.display  = 'flex';
   document.getElementById('customScreen').style.display = 'none';
   const rmScreen = document.getElementById('rmScreen');
@@ -1585,6 +1587,7 @@ async function generatePDF(returnBlob=false){
   doc.save(fname);
   oc++;localStorage.setItem('waOC',String(oc));updateOid();
   toast('Work Order PDF downloaded!','ok');
+  maybeSaveToSheet();
 }
 
 // ── WHATSAPP ──────────────────────────────────────────
@@ -1706,6 +1709,7 @@ async function waShare(){
           text:`Work Order ${id2} for ${cn}\nGrand Total: ${fmtAmt(grand)} | Balance: ${fmtAmt(bal)}`,
           files:[file]
         });
+        maybeSaveToSheet();
         toast('Shared via WhatsApp!','ok');
         return;
       }
@@ -1717,31 +1721,7 @@ async function waShare(){
 
   // ── Fallback: wa.me text link (desktop or older browsers) ──
   window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
-
-  // Save to Google Sheet
-  const subAmt   = items.reduce((s,i)=>s+(i.qty*i.unitPrice),0) + (custAdj||0);
-  const taxAmt   = subAmt * gr / 100;
-  const grandAmt = subAmt + taxAmt;
-  saveToGoogleSheet({
-    orderNumber  : id,
-    orderType    : 'Custom',
-    customerName : cn,
-    phone        : cp,
-    address      : ca,
-    products     : items.map(i=>i.name).join(', '),
-    customisation: currentMode==='custom' ? getCustSummary() : '',
-    deliveryDate : dd,
-    isTakeAway   : false,
-    subtotal     : Math.round(subAmt),
-    gstAmount    : Math.round(taxAmt),
-    total        : Math.round(grandAmt),
-    advance      : adv,
-    balance      : Math.round(grandAmt - adv),
-    executive    : ex,
-    notes        : nt,
-    vendorDates  : currentMode==='custom' ? getVendorDatesPayload(dd) : [],
-  });
-
+  maybeSaveToSheet();
   toast('Opening WhatsApp with invoice...', 'ok');
 }
 
@@ -2191,6 +2171,54 @@ async function testSheetConnection(){
     banner.style.color = '#991B1B';
     banner.innerHTML = '&#10005; <strong>Could not connect.</strong> Check the URL and make sure the deployment is set to <strong>Anyone</strong>.';
   }
+}
+
+// ── Build sheet payload from current order state ─────────────────
+function buildSheetPayload(){
+  const cn  = document.getElementById('cName').value  || 'Walk-in Customer';
+  const cp  = document.getElementById('cPhone').value || '';
+  const ca  = document.getElementById('cAddr').value  || '';
+  const dd  = document.getElementById('dDate').value  || '';
+  const ex  = document.getElementById('exec').value   || '';
+  const nt  = document.getElementById('notes').value  || '';
+  const id  = document.getElementById('oid').textContent;
+  const gr  = parseFloat(document.getElementById('gstR').value) || 0;
+  const adv = parseFloat(document.getElementById('adv').value)  || 0;
+  const sub = items.reduce((s,i)=>s+(i.qty*i.unitPrice),0) + (custAdj||0);
+  const tax = sub * gr / 100;
+  const grand = sub + tax;
+  return {
+    orderNumber  : id,
+    orderType    : currentMode === 'custom' ? 'Custom' : 'Ready Made',
+    customerName : cn,
+    phone        : cp,
+    address      : ca,
+    products     : items.map(i=>i.name).join(', '),
+    customisation: currentMode === 'custom' ? getCustSummary() : '',
+    deliveryDate : dd,
+    isTakeAway   : false,
+    subtotal     : Math.round(sub),
+    gstAmount    : Math.round(tax),
+    total        : Math.round(grand),
+    advance      : adv,
+    balance      : Math.round(grand - adv),
+    executive    : ex,
+    notes        : nt,
+    vendorDates  : currentMode === 'custom' ? getVendorDatesPayload(dd) : [],
+  };
+}
+
+// ── Save to sheet once per order (deduplication via orderSheetSaved) ─
+async function maybeSaveToSheet(){
+  if(orderSheetSaved) return;
+  orderSheetSaved = true;
+  await saveToGoogleSheet(buildSheetPayload());
+}
+
+// ── Print wrapper — saves to sheet first ─────────────────────────
+function doPrint(){
+  maybeSaveToSheet();
+  window.print();
 }
 
 // ── Core save function — called after every order ────────────────
