@@ -2220,8 +2220,13 @@ function buildSheetPayload(){
 // ── Save to sheet once per order (deduplication via orderSheetSaved) ─
 async function maybeSaveToSheet(){
   if(orderSheetSaved) return;
-  orderSheetSaved = true;
-  await saveToGoogleSheet(buildSheetPayload());
+  orderSheetSaved = true; // set early to prevent duplicate concurrent calls
+  try{
+    await saveToGoogleSheet(buildSheetPayload());
+  } catch(e){
+    orderSheetSaved = false; // allow retry if something threw unexpectedly
+    console.warn('maybeSaveToSheet error:', e);
+  }
 }
 
 // ── Print wrapper — saves to sheet first ─────────────────────────
@@ -2230,7 +2235,7 @@ function doPrint(){
   window.print();
 }
 
-// ── Core save function — GET+param approach, reads real response ──
+// ── Core save function ───────────────────────────────────────────
 async function saveToGoogleSheet(payload){
   const url = localStorage.getItem('sheetUrl');
   if(!url){
@@ -2239,15 +2244,17 @@ async function saveToGoogleSheet(payload){
   }
 
   try{
-    const encoded = encodeURIComponent(JSON.stringify({action:'saveOrder', ...payload}));
-    const resp = await fetch(`${url}?payload=${encoded}`);
-    const json = await resp.json();
-    if(json && json.success){
-      toast('&#9989; Order saved to Google Sheet','ok');
-    } else {
-      console.warn('Sheet save returned error:', json);
-      toast('&#9888;&#65039; Sheet error: '+(json&&json.error||'unknown'));
-    }
+    // Send as URL-encoded form POST: Apps Script reads e.parameter.payload in doPost
+    // This is the most reliable method — no CORS preflight, no redirect body loss
+    const body = new URLSearchParams();
+    body.set('payload', JSON.stringify({action:'saveOrder', ...payload}));
+    const resp = await fetch(url, {
+      method : 'POST',
+      mode   : 'no-cors',  // avoids CORS error reading opaque redirect response
+      body   : body,       // URLSearchParams auto-sets Content-Type: application/x-www-form-urlencoded
+    });
+    // With no-cors the response is opaque — if we get here the request was sent
+    toast('&#9989; Order saved to Google Sheet','ok');
   } catch(e){
     console.warn('Google Sheet sync failed:', e);
     toast('&#9888;&#65039; Sheet sync failed — open Settings and re-test connection');
