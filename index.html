@@ -2221,7 +2221,7 @@ function doPrint(){
   window.print();
 }
 
-// ── Core save function — called after every order ────────────────
+// ── Core save function — sends data via GET params (avoids POST redirect issue) ─
 async function saveToGoogleSheet(payload){
   const url = localStorage.getItem('sheetUrl');
   if(!url){
@@ -2230,14 +2230,10 @@ async function saveToGoogleSheet(payload){
   }
 
   try{
-    // mode:'no-cors' is required for Apps Script — response is opaque but
-    // the POST body reaches doPost() correctly despite the 302 redirect
-    await fetch(url, {
-      method : 'POST',
-      mode   : 'no-cors',
-      headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body   : JSON.stringify({action:'saveOrder', ...payload}),
-    });
+    // Use GET + URL param: Apps Script's POST redirect converts POST→GET losing
+    // the body. Sending as a GET param reaches doGet reliably with no-cors.
+    const encoded = encodeURIComponent(JSON.stringify({action:'saveOrder', ...payload}));
+    await fetch(`${url}?payload=${encoded}`, {method:'GET', mode:'no-cors'});
     toast('&#9989; Order saved to Google Sheet','ok');
   } catch(e){
     console.warn('Google Sheet sync failed:', e);
@@ -2250,19 +2246,15 @@ async function syncStockToSheet(product, newStock, orderNumber){
   const url = localStorage.getItem('sheetUrl');
   if(!url) return;
   try{
-    await fetch(url, {
-      method : 'POST',
-      mode   : 'no-cors',
-      headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body   : JSON.stringify({
-        action      : 'updateStock',
-        productId   : product.id,
-        productName : product.name,
-        category    : product.cat,
-        newStock    : newStock,
-        orderNumber : orderNumber,
-      }),
-    });
+    const encoded = encodeURIComponent(JSON.stringify({
+      action      : 'updateStock',
+      productId   : product.id,
+      productName : product.name,
+      category    : product.cat,
+      newStock    : newStock,
+      orderNumber : orderNumber,
+    }));
+    await fetch(`${url}?payload=${encoded}`, {method:'GET', mode:'no-cors'});
   } catch(e){
     console.warn('Stock sync failed:', e);
   }

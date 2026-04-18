@@ -33,8 +33,21 @@ function doPost(e) {
   }
 }
 
-// ── Called when browser opens the URL directly (health check) ───
+// ── Called for GET requests — handles both health check and data saves ──
 function doGet(e) {
+  // If a payload param is present, process it as an action
+  if (e && e.parameter && e.parameter.payload) {
+    try {
+      var data = JSON.parse(e.parameter.payload);
+      var action = data.action;
+      if (action === 'saveOrder')   return saveOrder(data);
+      if (action === 'updateStock') return updateStock(data);
+      return respond({success: false, error: 'Unknown action'});
+    } catch(err) {
+      return respond({success: false, error: err.toString()});
+    }
+  }
+  // Health check
   return ContentService
     .createTextOutput('✅ Wood Art Interio — Google Sheet API is working!')
     .setMimeType(ContentService.MimeType.TEXT);
