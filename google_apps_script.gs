@@ -70,7 +70,7 @@ function doGet(e) {
 //  SAVE ORDER
 // ═══════════════════════════════════════════════════════════════
 function saveOrder(data) {
-  var ss     = SpreadsheetApp.getActiveSpreadsheet();
+  var ss     = SpreadsheetApp.openById('1n_gbEgikKrWh_4eZKBEEAC3J-qmFA4j_udpECwlnCos');
   var orders = getOrCreateSheet(ss, 'Orders', [
     'Order No', 'Type', 'Date', 'Customer Name', 'Phone', 'Address',
     'Products', 'Customisation', 'Delivery Date', 'Take Away?',
@@ -119,7 +119,7 @@ function saveOrder(data) {
 //  UPDATE STOCK
 // ═══════════════════════════════════════════════════════════════
 function updateStock(data) {
-  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var ss    = SpreadsheetApp.openById('1n_gbEgikKrWh_4eZKBEEAC3J-qmFA4j_udpECwlnCos');
   var stock = getOrCreateSheet(ss, 'Stock', [
     'Product ID', 'Product Name', 'Category', 'Stock Count', 'Last Updated', 'Last Order No'
   ]);
