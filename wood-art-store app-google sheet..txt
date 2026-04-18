@@ -1,0 +1,12 @@
+Web app
+URL
+
+https://script.google.com/macros/s/AKfycbwzyauGadMhfpL7pntEAPlYR4NQCBGmVPImJM-7FYNyq1W6__Dhvk9vc3R_P3HMTqdx/exec
+
+Deployment successfully updated.Wood art store app.
+
+Version 2 on Apr 17, 2026, 12:06 PM
+Deployment ID
+
+AKfycbwzyauGadMhfpL7pntEAPlYR4NQCBGmVPImJM-7FYNyq1W6__Dhvk9vc3R_P3HMTqdx
+
