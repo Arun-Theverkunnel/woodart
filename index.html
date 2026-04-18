@@ -446,6 +446,8 @@ textarea{resize:vertical;min-height:68px;}
         <div class="fi full"><div class="lbl">Delivery Address</div><input id="cAddr" placeholder="House / Street, Locality, District, PIN"/></div>
         <div class="fi"><div class="lbl">Expected Delivery</div><input id="dDate" type="date" oninput="calcVendorDates()"/></div>
         <div class="fi"><div class="lbl">Sales Executive</div><input id="exec" placeholder="Staff name"/></div>
+        <div class="fi"><div class="lbl">Advance (Rs)</div><input id="adv" class="adv-in" type="number" value="0" oninput="recalc()" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:14px;font-family:'DM Sans',sans-serif;"/></div>
+        <div class="fi"><div class="lbl">Balance Due (Rs)</div><input id="balDisp" readonly style="width:100%;background:var(--surface);border:1px solid var(--border);color:#E07B39;border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;" value="0"/></div>
       </div>
     </div>
 
@@ -550,7 +552,7 @@ textarea{resize:vertical;min-height:68px;}
         <span class="tv" id="gstAmt">Rs. 0</span>
       </div>
       <div class="tr grand"><span class="tl">Grand Total</span><span class="tv" id="grand">Rs. 0</span></div>
-      <div class="tr" style="margin-top:9px"><span class="tl">Advance Received</span><input class="adv-in" id="adv" type="number" value="0" oninput="recalc()"/></div>
+      <div class="tr" style="margin-top:9px"><span class="tl">Advance Received</span><span class="tv" id="advDisp" style="color:#D4B483">Rs. 0</span></div>
       <div class="tr"><span class="tl" style="color:#F5E6CC;font-weight:600">Balance Due</span><span class="tv" id="bal" style="color:#FF9B71">Rs. 0</span></div>
     </div>
     <div class="oactions">
@@ -961,11 +963,16 @@ function recalc(){
   const adj  = (currentMode==='custom') ? (custAdj||0) : 0;
   const s    = base + adj;
   const gr   = parseFloat(document.getElementById('gstR').value);
-  const tax  = s*gr/100, grand=s+tax, adv=parseFloat(document.getElementById('adv').value)||0;
+  const tax  = s*gr/100, grand=s+tax;
+  const adv  = parseFloat(document.getElementById('adv').value)||0;
+  const bal  = Math.round(grand-adv);
   document.getElementById('sub').textContent    = 'Rs. '+s.toLocaleString('en-IN');
   document.getElementById('gstAmt').textContent = 'Rs. '+Math.round(tax).toLocaleString('en-IN');
   document.getElementById('grand').textContent  = 'Rs. '+Math.round(grand).toLocaleString('en-IN');
-  document.getElementById('bal').textContent    = 'Rs. '+Math.round(grand-adv).toLocaleString('en-IN');
+  document.getElementById('advDisp').textContent= 'Rs. '+adv.toLocaleString('en-IN');
+  document.getElementById('bal').textContent    = 'Rs. '+bal.toLocaleString('en-IN');
+  const balDisp = document.getElementById('balDisp');
+  if(balDisp) balDisp.value = bal.toLocaleString('en-IN');
 }
 
 function openModal(){resetPhoto();document.getElementById('modal').classList.add('open');}
