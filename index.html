@@ -2224,7 +2224,10 @@ function doPrint(){
 // ── Core save function — called after every order ────────────────
 async function saveToGoogleSheet(payload){
   const url = localStorage.getItem('sheetUrl');
-  if(!url) return; // not configured — silently skip
+  if(!url){
+    toast('&#9888;&#65039; Google Sheet URL not set — open Settings and paste your Apps Script URL');
+    return;
+  }
 
   try{
     // mode:'no-cors' is required for Apps Script — response is opaque but
