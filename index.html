@@ -1218,164 +1218,182 @@ async function generatePDF(returnBlob=false){
   });
   y+=52;
 
+  // ── GREETING ──
+  y+=6;
+  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(30,18,8);
+  doc.text('Dear Sir/Mam,',M,y);
+  y+=7;
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(60,45,30);
+  doc.text('Thank you for your valuable inquiry. We are pleased to quote as below;',M,y);
+  y+=12;
+
   // ── PRODUCT TABLE HEADER ──
-  doc.setFillColor(61,43,31);doc.rect(M,y,W-M*2,9,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(245,230,204);
-  doc.text('Photo',M+4,y+6);
-  doc.text('Product & Description',M+34,y+6);
-  doc.text('Cat.',M+100,y+6);
-  doc.text('Qty',M+122,y+6,{align:'center'});
-  doc.text('Unit Price',M+150,y+6,{align:'right'});
-  doc.text('Total',M+182,y+6,{align:'right'});
-  y+=11;
+  // Columns: # (8) | DESCRIPTION (50) | PRODUCT IMAGE (44) | QTY (20) | PRICE (30) | TOTAL (30) = 182
+  const C={num:M,desc:M+8,img:M+58,qty:M+102,price:M+122,total:M+152};
+  const TW=W-M*2; // 182mm
+  doc.setFillColor(61,43,31);doc.rect(M,y,TW,10,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(245,230,204);
+  doc.text('#',C.num+4,y+7);
+  doc.text('DESCRIPTION',C.desc+2,y+7);
+  doc.text('PRODUCT IMAGE',C.img+22,y+7,{align:'center'});
+  doc.text('QTY',C.qty+10,y+7,{align:'center'});
+  doc.text('PRICE',C.price+14,y+7,{align:'center'});
+  doc.text('TOTAL',C.total+14,y+7,{align:'center'});
+  y+=10;
 
   // ── PRODUCT ROWS ──
-  const ROW_H=34;
-  const IMG_W=28;
-  const IMG_H=28;
-  const IMG_X=M+2;
+  const ROW_H=42;
+  const IMG_W=38;
+  const IMG_H=36;
 
   for(let i=0;i<items.length;i++){
     const item=items[i];
     if(y+ROW_H>H-90){doc.addPage();y=20;}
 
-    // Row background
-    const rowBg=i%2===0;
-    doc.setFillColor(rowBg?246:255,rowBg?241:255,rowBg?233:255);
-    doc.rect(M,y,W-M*2,ROW_H,'F');
-    doc.setDrawColor(212,197,169);doc.setLineWidth(0.25);doc.rect(M,y,W-M*2,ROW_H,'S');
+    // Row background (alternating)
+    doc.setFillColor(i%2===0?248:255,i%2===0?244:255,i%2===0?236:255);
+    doc.rect(M,y,TW,ROW_H,'F');
 
-    const imgY=y+3;
+    // Vertical column dividers
+    doc.setDrawColor(180,155,115);doc.setLineWidth(0.3);
+    [C.desc,C.img,C.qty,C.price,C.total].forEach(cx=>{
+      doc.line(cx,y,cx,y+ROW_H);
+    });
+    // Outer border
+    doc.rect(M,y,TW,ROW_H,'S');
 
-    // PRODUCT IMAGE — embed from imgCache
+    const midY=y+ROW_H/2;
+
+    // Row number
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(61,43,31);
+    doc.text(String(i+1),C.num+4,midY+4,{align:'center'});
+
+    // Description
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(28,16,8);
+    const nameLines=doc.splitTextToSize(item.name,46);
+    const nameStartY = item.desc ? midY-4 : midY+3;
+    nameLines.slice(0,2).forEach((l,li)=>doc.text(l,C.desc+3,nameStartY+li*6));
+    if(item.desc){
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(100,80,60);
+      doc.text(doc.splitTextToSize(item.desc,44)[0],C.desc+3,nameStartY+nameLines.slice(0,2).length*6+2);
+    }
+
+    // Product image — centered in image column (44mm wide)
+    const imgX=C.img+(44-IMG_W)/2;
+    const imgY=y+(ROW_H-IMG_H)/2;
     const b64=imgCache[item.id];
     if(b64){
       try{
-        doc.setFillColor(230,220,205);
-        doc.rect(IMG_X,imgY,IMG_W,IMG_H,'F');
-        doc.addImage(b64,'JPEG',IMG_X,imgY,IMG_W,IMG_H,'img'+item.id,'FAST');
-        doc.setDrawColor(180,160,130);doc.setLineWidth(0.3);
-        doc.rect(IMG_X,imgY,IMG_W,IMG_H,'S');
+        doc.addImage(b64,'JPEG',imgX,imgY,IMG_W,IMG_H,'img'+item.id,'FAST');
+        doc.setDrawColor(180,160,130);doc.setLineWidth(0.3);doc.rect(imgX,imgY,IMG_W,IMG_H,'S');
       }catch(err){
-        doc.setFillColor(220,210,195);doc.rect(IMG_X,imgY,IMG_W,IMG_H,'F');
+        doc.setFillColor(220,210,195);doc.rect(imgX,imgY,IMG_W,IMG_H,'F');
         doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(140,110,80);
-        doc.text('No Photo',IMG_X+IMG_W/2,imgY+IMG_H/2+2,{align:'center'});
+        doc.text('No Photo',imgX+IMG_W/2,imgY+IMG_H/2+2,{align:'center'});
       }
     }else{
-      // Clean placeholder — no emoji (jsPDF Helvetica can't render emoji)
-      doc.setFillColor(235,225,210);doc.rect(IMG_X,imgY,IMG_W,IMG_H,'F');
-      doc.setDrawColor(200,185,165);doc.setLineWidth(0.3);doc.rect(IMG_X,imgY,IMG_W,IMG_H,'S');
-      doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(180,150,120);
-      doc.text('No Photo',IMG_X+IMG_W/2,imgY+IMG_H/2+2,{align:'center'});
+      doc.setFillColor(235,225,210);doc.rect(imgX,imgY,IMG_W,IMG_H,'F');
+      doc.setDrawColor(200,185,165);doc.setLineWidth(0.3);doc.rect(imgX,imgY,IMG_W,IMG_H,'S');
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(170,140,110);
+      doc.text('No Photo',imgX+IMG_W/2,imgY+IMG_H/2+2,{align:'center'});
     }
 
-    // Row number
-    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(160,128,96);
-    doc.text(String(i+1),IMG_X+IMG_W+3,y+7);
+    // Qty — "X SET" or plain number
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(30,18,8);
+    doc.text(String(item.qty)+' SET',C.qty+10,midY+3,{align:'center'});
 
-    // Product name
-    const txtX=IMG_X+IMG_W+2;
-    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(28,16,8);
-    const nameLines=doc.splitTextToSize(item.name,60);
-    doc.text(nameLines[0],txtX,y+13);
-    if(nameLines[1])doc.text(nameLines[1],txtX,y+19);
+    // Price
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(61,43,31);
+    doc.text(item.unitPrice.toLocaleString('en-IN'),C.price+28,midY+3,{align:'right'});
 
-    // Description
-    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(110,90,70);
-    const desc=item.desc||'';
-    if(desc){
-      const dLines=doc.splitTextToSize(desc,60);
-      doc.text(dLines[0],txtX,y+24);
-    }
-
-    // Category
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(80,60,40);
-    doc.text(item.cat,M+100,y+17);
-
-    // Qty
-    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(30,18,8);
-    doc.text(String(item.qty),M+122,y+17,{align:'center'});
-
-    // Unit price
-    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(80,60,40);
-    doc.text('Rs.'+item.unitPrice.toLocaleString('en-IN'),M+150,y+17,{align:'right'});
-
-    // Row total
-    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(61,43,31);
-    doc.text('Rs.'+(item.qty*item.unitPrice).toLocaleString('en-IN'),M+182,y+17,{align:'right'});
+    // Total
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(61,43,31);
+    doc.text((item.qty*item.unitPrice).toLocaleString('en-IN'),C.total+28,midY+3,{align:'right'});
 
     y+=ROW_H;
   }
 
-  y+=7;
-  if(y>H-92){doc.addPage();y=20;}
+  y+=4;
+  if(y>H-100){doc.addPage();y=20;}
 
-  // ── TOTALS + NOTES SIDE BY SIDE ──
-  const tX=M+88,tW=W-M-tX;
+  // ── GRAND TOTAL ROW (full-width, quotation style) ──
+  const gtRowH=14;
+  doc.setFillColor(61,43,31);doc.rect(M,y,TW,gtRowH,'F');
+  doc.setDrawColor(180,155,115);doc.setLineWidth(0.3);
+  [C.desc,C.img,C.qty,C.price,C.total].forEach(cx=>{doc.line(cx,y,cx,y+gtRowH);});
+  doc.rect(M,y,TW,gtRowH,'S');
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(245,230,204);
+  doc.text('GRAND TOTAL',C.price+14,y+9.5,{align:'center'});
+  doc.setFontSize(13);doc.setTextColor(200,134,26);
+  doc.text(Math.round(grand).toLocaleString('en-IN'),C.total+28,y+9.5,{align:'right'});
+  y+=gtRowH+6;
 
-  // Notes box (left)
-  if(nt){
-    doc.setFillColor(255,252,235);doc.roundedRect(M,y,84,50,2,2,'F');
-    doc.setDrawColor(220,200,150);doc.setLineWidth(0.3);doc.roundedRect(M,y,84,50,2,2,'S');
-    doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(101,67,33);
-    doc.text('SPECIAL INSTRUCTIONS',M+3,y+7);
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(60,45,30);
-    doc.text(doc.splitTextToSize(nt,78).slice(0,6),M+3,y+14);
+  // ── SUBTOTALS + ADVANCE + BALANCE (compact, right-aligned) ──
+  if(y>H-80){doc.addPage();y=20;}
+  const stX=M+100,stW=W-M-stX;
+  [
+    ['Subtotal','Rs.'+sub.toLocaleString('en-IN'),false],
+    [`GST @ ${gr}%`,'Rs.'+Math.round(tax).toLocaleString('en-IN'),false],
+    ['Advance Received','Rs.'+adv.toLocaleString('en-IN'),false],
+    ['Balance Due','Rs.'+Math.round(bal).toLocaleString('en-IN'),true],
+  ].forEach(([l,v,red])=>{
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(80,60,40);
+    doc.text(l,stX,y);
+    doc.setFont('helvetica','bold');doc.setTextColor(red?155:61,red?35:43,red?53:31);
+    doc.text(v,stX+stW,y,{align:'right'});
+    y+=6.5;
+  });
+  y+=5;
+
+  // ── NOTES ──
+  if(nt && y<H-70){
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(101,67,33);
+    doc.text('Note:',M,y);
+    doc.setFont('helvetica','normal');doc.setTextColor(60,45,30);
+    doc.text(doc.splitTextToSize(nt,W-M*2-20).slice(0,3),M+12,y);
+    y+=16;
   }
 
-  // Totals box (right)
-  doc.setFillColor(245,240,232);doc.roundedRect(tX,y,tW,50,2,2,'F');
-  doc.setDrawColor(200,180,140);doc.setLineWidth(0.3);doc.roundedRect(tX,y,tW,50,2,2,'S');
-  [['Subtotal','Rs.'+sub.toLocaleString('en-IN'),false,false],
-   [`GST @ ${gr}%`,'Rs.'+Math.round(tax).toLocaleString('en-IN'),false,false],
-   ['Grand Total','Rs.'+Math.round(grand).toLocaleString('en-IN'),true,false],
-   ['Advance Received','Rs.'+adv.toLocaleString('en-IN'),false,false],
-   ['Balance Due','Rs.'+Math.round(bal).toLocaleString('en-IN'),false,true]
-  ].forEach(([l,v,bold,highlight],i)=>{
-    const ty=y+7+i*8.5;
-    if(bold){
-      doc.setFillColor(61,43,31);doc.rect(tX,ty-4.5,tW,9,'F');
-      doc.setTextColor(245,230,204);
-    }else if(highlight){
-      doc.setTextColor(155,35,53);
-    }else{
-      doc.setTextColor(80,60,40);
-    }
-    doc.setFont('helvetica',bold?'bold':'normal');
-    doc.setFontSize(bold?9.5:8.5);
-    doc.text(l,tX+4,ty+1);
-    doc.setFont('helvetica','bold');
-    doc.text(v,tX+tW-4,ty+1,{align:'right'});
-  });
-  y+=58;
-
   // ── TERMS ──
-  if(y>H-72){doc.addPage();y=20;}
-  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(101,67,33);
-  doc.text('TERMS & CONDITIONS',M,y);
-  doc.setLineWidth(0.4);doc.setDrawColor(200,175,130);doc.line(M,y+2.5,W-M,y+2.5);
-  y+=7;
-  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(90,70,50);
-  doc.text(doc.splitTextToSize(tm,W-M*2).slice(0,12),M,y);
-  y+=50;
+  if(tm && y<H-60){
+    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(101,67,33);
+    doc.text('Terms & Conditions:',M,y);doc.setLineWidth(0.3);doc.setDrawColor(200,175,130);doc.line(M,y+2,W-M,y+2);
+    y+=6;
+    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(90,70,50);
+    doc.text(doc.splitTextToSize(tm,W-M*2).slice(0,8),M,y);
+    y+=34;
+  }
 
-  // ── SIGNATURE BOXES ──
-  const sy=H-38;
-  doc.setDrawColor(180,155,115);doc.setLineWidth(0.4);
+  // ── BOTTOM SECTION — fixed near page bottom ──
+  const bY=H-52;
+
+  // "We hope you find our offer..." | "For, Wood Art Furniture Mart"
+  doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.setTextColor(60,45,30);
+  doc.text('We hope you find our offer to be in line with your requirement',M,bY);
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(61,43,31);
+  doc.text('For, Wood Art Furniture Mart',W-M,bY,{align:'right'});
+
+  // Payment details (left)
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(61,43,31);
+  doc.text('Payment Details:',M,bY+8);
+  doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(60,45,30);
   [
-    {x:M,w:56,l:'Customer Signature & Date'},
-    {x:M+60,w:56,l:'Sales Executive: '+ex},
-    {x:M+120,w:56,l:'Authorised Signatory'},
-  ].forEach(s=>{
-    doc.rect(s.x,sy,s.w,18,'S');
-    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(110,90,70);
-    doc.text(doc.splitTextToSize(s.l,s.w-4),s.x+2,sy+22);
-  });
+    'Payment Holder Name :- Wood Art Furniture Mart',
+    'Account Number :- 0779261005179',
+    'IFSC :- CNRB0000779',
+    'Swift code :- Canara Bank, Manarcadu Branch',
+  ].forEach((line,i)=>doc.text(line,M,bY+14+i*5));
 
-  // ── FOOTER ──
+  // Authorized signature (right)
+  doc.setDrawColor(61,43,31);doc.setLineWidth(0.5);
+  doc.line(W-M-52,bY+28,W-M,bY+28);
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(61,43,31);
+  doc.text('AUTHORIZED SIGNATURE',W-M,bY+33,{align:'right'});
+
+  // ── FOOTER BAR ──
   doc.setFillColor(61,43,31);doc.rect(0,H-10,W,10,'F');
   doc.setFont('helvetica','normal');doc.setFontSize(6.2);doc.setTextColor(160,128,96);
-  doc.text('Wood Art Interio  |  Manarcadu, Kottayam, Kerala  |  +91 9400233733  |  Powered by Aarpo Global Solutions',W/2,H-4,{align:'center'});
+  doc.text('Wood Art Furniture Mart  |  Manarcadu, Kottayam, Kerala 686019  |  +91 9400233733  |  woodartinterio.com',W/2,H-4,{align:'center'});
 
   const fname=`WorkOrder_${id}_${cn.replace(/\s+/g,'_')}.pdf`;
   if(returnBlob){return doc.output('blob');}
