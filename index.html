@@ -301,34 +301,6 @@ textarea{resize:vertical;min-height:68px;}
   <div class="pin-hint" id="pinHint">Default PIN: 1234 &nbsp;·&nbsp; Change in ⚙️ Settings</div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     SCREEN 0 — ORDER TYPE SELECTION
-═══════════════════════════════════════════════════ -->
-<div id="otsScreen" style="display:none;">
-  <div class="ots-brand">
-    <div class="ots-logo">W</div>
-    <div class="ots-title">Wood Art Interio</div>
-    <div class="ots-sub">Manarcadu, Kottayam &mdash; Premium Furniture</div>
-  </div>
-
-  <div class="ots-prompt">What type of order would you like to create?</div>
-
-  <div class="ots-cards">
-    <div class="ots-card rm" onclick="selectMode('rm')">
-      <div class="ots-card-icon">&#128230;</div>
-      <div class="ots-card-title">Ready Made Stock</div>
-      <div class="ots-card-desc">Pick from available stock. Immediate take&nbsp;away or scheduled delivery.</div>
-      <div class="ots-card-tag">&#9679; In Stock Items</div>
-    </div>
-    <div class="ots-card co" onclick="selectMode('custom')">
-      <div class="ots-card-icon">🎨</div>
-      <div class="ots-card-title">Custom Order</div>
-      <div class="ots-card-desc">Choose base product, fabric, colour, size &amp; finish. 20-day delivery.</div>
-      <div class="ots-card-tag">&#9679; Made to Order</div>
-    </div>
-  </div>
-  <button onclick="openSettings()" title="Google Sheets Settings" style="position:absolute;top:18px;right:18px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#F5E6CC;border-radius:8px;padding:8px 12px;font-size:18px;cursor:pointer;">&#9881;&#65039;</button>
-</div>
 
 <div class="topbar">
   <div class="brand">
@@ -343,95 +315,7 @@ textarea{resize:vertical;min-height:68px;}
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     SCREEN 1 — READY MADE FLOW
-═══════════════════════════════════════════════════ -->
-<div id="rmScreen">
-  <div class="rm-layout">
 
-    <!-- LEFT: Product grid -->
-    <div class="rm-left">
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-header"><div class="card-icon">&#128230;</div><div class="card-title">Select a Product from Stock</div></div>
-        <!-- Category filter -->
-        <div class="cats" id="rmCats">
-          <div class="cat on" onclick="rmFilterCat('all',this)">All</div>
-          <div class="cat" onclick="rmFilterCat('Bedroom',this)">&#127756; Bedroom</div>
-          <div class="cat" onclick="rmFilterCat('Living Room',this)">&#128715; Living</div>
-          <div class="cat" onclick="rmFilterCat('Dining',this)">&#127829; Dining</div>
-          <div class="cat" onclick="rmFilterCat('Occasional',this)">&#128218; Other</div>
-          <div class="cat" onclick="rmFilterCat('Office',this)">&#128188; Office</div>
-        </div>
-        <!-- Search -->
-        <div class="srch-wrap"><span class="srch-icon">&#128269;</span><input id="rmSearch" placeholder="Search stock products..." oninput="renderRMProducts()"/></div>
-        <!-- Grid -->
-        <div class="pgrid" id="rmGrid" style="max-height:480px;"></div>
-      </div>
-    </div>
-
-    <!-- RIGHT: Customer form + actions -->
-    <div class="rm-right">
-      <div style="padding-bottom:.75rem;border-bottom:1px solid rgba(255,255,255,0.08);">
-        <div style="font-family:'Playfair Display',serif;color:#F5E6CC;font-size:17px;">Ready Made Order</div>
-        <div style="color:var(--amber);font-size:11px;font-weight:600;font-family:monospace;" id="rmOid">WA-RM-0001</div>
-      </div>
-
-      <!-- Selected product -->
-      <div>
-        <div class="rm-lbl">Selected Product</div>
-        <div class="rm-sel-box" id="rmSelBox">
-          <div class="rm-sel-empty">&#128230; Tap a product on the left to select it</div>
-        </div>
-      </div>
-
-      <!-- Customer details -->
-      <div class="rm-field">
-        <div class="rm-lbl">Customer Name *</div>
-        <input class="rm-inp" id="rmName" placeholder="e.g. Rajan Mathew"/>
-      </div>
-      <div class="rm-field">
-        <div class="rm-lbl">Phone Number *</div>
-        <input class="rm-inp" id="rmPhone" type="tel" placeholder="+91 98765 43210"/>
-      </div>
-      <div class="rm-field">
-        <div class="rm-lbl">Sales Executive</div>
-        <input class="rm-inp" id="rmExec" placeholder="Staff name"/>
-      </div>
-
-      <!-- Take Away toggle -->
-      <div class="rm-takeway" id="rmTakeAway" onclick="rmToggleTakeAway()">
-        <div class="rm-takeway-chk" id="rmTAChk"></div>
-        <div>
-          <div class="rm-takeway-txt">&#127968; Take Away Today</div>
-          <div style="font-size:10px;color:#8B7355;">Tick this if customer is taking now</div>
-        </div>
-      </div>
-
-      <!-- Delivery date (hidden when Take Away) -->
-      <div id="rmDeliveryWrap">
-        <div class="rm-field">
-          <div class="rm-lbl">Delivery Date</div>
-          <input class="rm-inp" id="rmDelivery" type="date"/>
-        </div>
-      </div>
-
-      <!-- Total -->
-      <div class="rm-total-box">
-        <div class="rm-total-row">
-          <span class="rm-total-lbl">Order Total</span>
-          <span class="rm-total-val" id="rmTotal">Rs. 0</span>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div style="display:flex;flex-direction:column;gap:7px;margin-top:auto;">
-        <button class="btn btn-success" onclick="rmGenerateOrder()" style="width:100%;justify-content:center;padding:11px;">&#128242; Send Work Order via WhatsApp</button>
-        <button class="btn btn-outline" onclick="showOTS()" style="width:100%;justify-content:center;color:#A08060;border-color:#5A4030;">&#8592; Back to Order Type</button>
-      </div>
-    </div>
-
-  </div>
-</div>
 
 <div class="main" id="customScreen" style="display:none;">
   <div class="left">
@@ -441,10 +325,9 @@ textarea{resize:vertical;min-height:68px;}
       <div class="fg">
         <div class="fi"><div class="lbl">Customer Name *</div><input id="cName" placeholder="e.g. Rajan Mathew"/></div>
         <div class="fi"><div class="lbl">Phone *</div><input id="cPhone" type="tel" placeholder="+91 98765 43210"/></div>
-        <div class="fi"><div class="lbl">Email</div><input id="cEmail" type="email" placeholder="customer@email.com" autocomplete="off"/></div>
         <div class="fi"><div class="lbl">Order Date</div><input id="oDate" type="date"/></div>
+        <div class="fi"><div class="lbl">Expected Delivery</div><input id="dDate" type="date"/></div>
         <div class="fi full"><div class="lbl">Delivery Address</div><input id="cAddr" placeholder="House / Street, Locality, District, PIN"/></div>
-        <div class="fi"><div class="lbl">Expected Delivery</div><input id="dDate" type="date" oninput="calcVendorDates()"/></div>
         <div class="fi"><div class="lbl">Sales Executive</div><input id="exec" placeholder="Staff name"/></div>
         <div class="fi"><div class="lbl">Advance (Rs)</div><input id="adv" class="adv-in" type="number" value="0" oninput="recalc()" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-size:14px;font-family:'DM Sans',sans-serif;"/></div>
         <div class="fi"><div class="lbl">Balance Due (Rs)</div><input id="balDisp" readonly style="width:100%;background:var(--surface);border:1px solid var(--border);color:#E07B39;border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;" value="0"/></div>
@@ -463,7 +346,7 @@ textarea{resize:vertical;min-height:68px;}
 
         <div class="cust-group full">
           <div class="lbl">Fabric Colour</div>
-          <div class="colour-row" id="custFabricColour"></div>
+          <input id="custFabricColour" placeholder="e.g. Grey, Navy Blue, Beige, Maroon..." style="margin-top:2px;"/>
         </div>
 
         <div class="cust-group">
@@ -488,34 +371,9 @@ textarea{resize:vertical;min-height:68px;}
     <div class="card">
       <div class="card-header">
         <div class="card-icon">&#128715;</div>
-        <div class="card-title">Select Products <span id="obadge" class="badge-count" style="display:none">0</span></div>
+        <div class="card-title">Products <span id="obadge" class="badge-count" style="display:none">0</span></div>
       </div>
-      <div class="cats">
-        <div class="cat on" onclick="filterCat('all',this)">All</div>
-        <div class="cat" onclick="filterCat('Bedroom',this)">&#127756; Bedroom</div>
-        <div class="cat" onclick="filterCat('Living Room',this)">&#128715; Living Room</div>
-        <div class="cat" onclick="filterCat('Dining',this)">&#127829; Dining</div>
-        <div class="cat" onclick="filterCat('Occasional',this)">&#128218; Occasional</div>
-        <div class="cat" onclick="filterCat('Office',this)">&#128188; Office</div>
-      </div>
-      <div class="srch-wrap"><span class="srch-icon">&#128269;</span><input id="srch" placeholder="Search products..." oninput="renderProds()"/></div>
-      <div class="pgrid" id="pgrid"></div>
-      <div class="div"></div>
-      <button class="btn btn-outline btn-sm" onclick="openModal()">+ Add Custom / Unlisted Product with AI Photo</button>
-    </div>
-
-    <!-- ── VENDOR REMINDERS CARD ── -->
-    <div class="card" id="vendorCard">
-      <div class="card-header"><div class="card-icon">&#128222;</div><div class="card-title">Vendor Call Schedule</div></div>
-      <div style="font-size:12px;color:var(--text-light);margin-bottom:1rem;line-height:1.6;">
-        Based on your delivery date, here are the exact dates to call each vendor.
-        Tap <strong>WhatsApp Reminder</strong> to send yourself a reminder on that date.
-      </div>
-      <div class="vendor-grid" id="vendorGrid">
-        <div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--text-light);font-size:12px;">
-          &#128197; Set the delivery date above to see vendor call dates
-        </div>
-      </div>
+      <button class="btn btn-outline" onclick="openModal()" style="width:100%;justify-content:center;padding:11px;font-size:13px;">+ Add Custom / Unlisted Product with AI Photo</button>
     </div>
 
     <div class="card">
@@ -539,7 +397,7 @@ textarea{resize:vertical;min-height:68px;}
   <div class="right">
     <div class="oh"><div class="oh-title">Order Summary</div><div class="oid" id="oid">WA-0001</div></div>
     <div class="olist" id="olist">
-      <div class="oempty"><div class="oempty-icon">&#128715;</div><div class="oempty-txt">Select products from the<br>catalogue to begin</div></div>
+      <div class="oempty"><div class="oempty-icon">&#128715;</div><div class="oempty-txt">Tap "+ Add Product"<br>to begin</div></div>
     </div>
     <div class="otot">
       <div class="tr"><span class="tl">Subtotal</span><span class="tv" id="sub">Rs. 0</span></div>
@@ -773,25 +631,20 @@ const CAT=[
   {id:27,name:'Storage Ottoman',              cat:'Occasional',  price:7200,  e:'📦', desc:'Upholstered lid storage inside',     stock:2},
 ];
 
-let items=[],curCat='all',camStream=null;
+let items=[],camStream=null;
 let rawB64=null,rawMime='image/jpeg';
 let beautifiedUrl=null,chosenUrl=null;
 let oc=parseInt(localStorage.getItem('waOC')||'1');
 let chosenStyle='studio';
 
-let currentMode = null; // 'rm' or 'custom'
+let currentMode = null;
 let orderSheetSaved = false; // dedup flag — reset on new order
 
 document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('oDate').value=new Date().toISOString().split('T')[0];
-  const dd=new Date();dd.setDate(dd.getDate()+14);
-  document.getElementById('dDate').value=dd.toISOString().split('T')[0];
   const savedRbg=localStorage.getItem('rbgKey');
   if(savedRbg)document.getElementById('rbgKey').value=savedRbg;
   const savedOr=localStorage.getItem('orKey');
   if(savedOr)document.getElementById('orKey').value=savedOr;
-  updateOid();renderProds();
-  // Show login screen on first load
   showLogin();
 });
 
@@ -799,7 +652,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 let pinEntry = '';
 function showLogin(){
   document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('otsScreen').style.display   = 'none';
+  document.getElementById('customScreen').style.display = 'none';
   pinEntry = '';
   updatePinDots();
   document.getElementById('pinError').textContent = '';
@@ -834,102 +687,38 @@ function checkPin(){
   }
 }
 
-// ─── SHOW ORDER TYPE SELECTION SCREEN ───────────────────
+// ─── NEW ORDER — goes directly to custom mode ────────────
 function showOTS(){
   if(currentMode && items.length>0 && !confirm('Start a new order? Current order will be cleared.')) return;
   currentMode = null;
   items = [];
   orderSheetSaved = false;
-  document.getElementById('otsScreen').style.display  = 'flex';
-  document.getElementById('customScreen').style.display = 'none';
-  const rmScreen = document.getElementById('rmScreen');
-  if(rmScreen) rmScreen.style.display = 'none';
-  const badge = document.getElementById('modeBadge');
-  badge.style.display = 'none';
-  document.getElementById('pdfBtn').style.display = 'none';
-  renderSummary();
+  selectMode('custom');
 }
 
-// ─── ROUTE TO CHOSEN MODE ───────────────────────────────
+// ─── ENTER CUSTOM ORDER MODE ─────────────────────────────
 function selectMode(mode){
-  currentMode = mode;
-  document.getElementById('otsScreen').style.display = 'none';
-  const badge = document.getElementById('modeBadge');
-  badge.style.display = 'inline-block';
-
-  if(mode === 'rm'){
-    badge.className = 'mode-badge rm';
-    badge.textContent = 'Ready Made';
-    document.getElementById('customScreen').style.display = 'none';
-    document.getElementById('pdfBtn').style.display = 'none';
-    document.getElementById('rmScreen').style.display = 'block';
-    // Reset RM state
-    rmSelectedId = null;
-    rmTakeAwayOn = false;
-    rmCurCat     = 'all';
-    document.getElementById('rmSelBox').innerHTML = '<div class="rm-sel-empty">&#128230; Tap a product on the left to select it</div>';
-    document.getElementById('rmTotal').textContent = 'Rs. 0';
-    document.getElementById('rmName').value  = '';
-    document.getElementById('rmPhone').value = '';
-    document.getElementById('rmExec').value  = '';
-    document.getElementById('rmTakeAway').classList.remove('on');
-    document.getElementById('rmTAChk').textContent = '';
-    document.getElementById('rmDeliveryWrap').style.display = 'block';
-    document.getElementById('rmOid').textContent = 'WA-RM-'+String(oc).padStart(4,'0');
-    renderRMProducts();
-  } else {
-    badge.className = 'mode-badge co';
-    badge.textContent = 'Custom Order';
-    document.getElementById('customScreen').style.display = 'grid';
-    document.getElementById('pdfBtn').style.display = 'inline-flex';
-    // Auto-set delivery to today + 20 days for custom orders
-    const d = new Date(); d.setDate(d.getDate()+20);
-    document.getElementById('dDate').value = d.toISOString().split('T')[0];
-    // Reset customisations
-    custSel = {fabricType:'standard', fabricColour:'cream', size:'standard', hardware:'chrome'};
-    custAdj = 0;
-    initCustOptions();
-    calcVendorDates();
-    updateOid(); renderProds();
-  }
+  currentMode = 'custom';
+  document.getElementById('customScreen').style.display = 'grid';
+  document.getElementById('pdfBtn').style.display = 'inline-flex';
+  // Auto-set delivery to today + 20 days
+  const d = new Date(); d.setDate(d.getDate()+20);
+  document.getElementById('dDate').value = d.toISOString().split('T')[0];
+  document.getElementById('oDate').value = new Date().toISOString().split('T')[0];
+  // Reset customisations
+  custSel = {fabricType:'standard', size:'standard', hardware:'chrome'};
+  custAdj = 0;
+  initCustOptions();
+  updateOid(); renderSummary();
 }
 
 function updateOid(){document.getElementById('oid').textContent='WA-'+String(oc).padStart(4,'0');}
 
-function filterCat(c,el){
-  curCat=c;
-  document.querySelectorAll('.cat').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');renderProds();
-}
-function renderProds(){
-  const s=document.getElementById('srch').value.toLowerCase();
-  const g=document.getElementById('pgrid');
-  const f=CAT.filter(p=>(curCat==='all'||p.cat===curCat)&&(!s||p.name.toLowerCase().includes(s)||p.desc.toLowerCase().includes(s)));
-  if(!f.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-light)">No products found</div>';return;}
-  g.innerHTML=f.map(p=>{
-    const io=items.find(i=>i.id===p.id);
-    return `<div class="pc ${io?'on':''}" onclick="toggleProd(${p.id})">
-      <div class="pc-img">${p.imgData?`<img src="${p.imgData}"/>`:`${p.e}`}</div>
-      <div class="pc-body">
-        <div class="pc-name">${p.name}</div>
-        <div class="pc-cat">${p.cat}</div>
-        <div class="pc-price">Rs.${p.price.toLocaleString('en-IN')}</div>
-      </div>
-      ${io?'<div class="pc-tick">&#10003;</div>':''}
-    </div>`;
-  }).join('');
-}
-function toggleProd(id){
-  const p=CAT.find(x=>x.id===id),e=items.find(i=>i.id===id);
-  if(e){items=items.filter(i=>i.id!==id);toast(`Removed: ${p.name}`);}
-  else{items.push({...p,qty:1,unitPrice:p.price});toast(`Added: ${p.name}`);}
-  renderProds();renderSummary();
-}
 
 function renderSummary(){
   const list=document.getElementById('olist'),badge=document.getElementById('obadge');
   if(!items.length){
-    list.innerHTML='<div class="oempty"><div class="oempty-icon">&#128715;</div><div class="oempty-txt">Select products from the<br>catalogue to begin</div></div>';
+    list.innerHTML='<div class="oempty"><div class="oempty-icon">&#128715;</div><div class="oempty-txt">Tap &quot;+ Add Product&quot;<br>to begin</div></div>';
     badge.style.display='none';recalc();return;
   }
   badge.style.display='inline-flex';badge.textContent=items.length;
@@ -957,10 +746,10 @@ function renderSummary(){
 }
 function chQty(i,d){items[i].qty=Math.max(1,items[i].qty+d);renderSummary();}
 function updPrice(i,v){items[i].unitPrice=parseFloat(v)||0;recalc();}
-function removeItem(i){const n=items[i].name;items.splice(i,1);renderProds();renderSummary();toast(`Removed: ${n}`);}
+function removeItem(i){const n=items[i].name;items.splice(i,1);renderSummary();toast(`Removed: ${n}`);}
 function recalc(){
   const base = items.reduce((a,i)=>a+(i.qty*i.unitPrice),0);
-  const adj  = (currentMode==='custom') ? (custAdj||0) : 0;
+  const adj  = custAdj||0;
   const s    = base + adj;
   const gr   = parseFloat(document.getElementById('gstR').value);
   const tax  = s*gr/100, grand=s+tax;
@@ -1338,7 +1127,7 @@ function addCustom(){
   document.getElementById('pName').value='';
   document.getElementById('pPrice').value='';
   document.getElementById('pDesc').value='';
-  renderProds();renderSummary();
+  renderSummary();
   toast(`Added: ${name}`,'ok');
 }
 
@@ -1356,7 +1145,6 @@ async function generatePDF(returnBlob=false){
 
   const cn=document.getElementById('cName').value||'Walk-in Customer';
   const cp=document.getElementById('cPhone').value||'—';
-  const ce=document.getElementById('cEmail').value||'—';
   const ca=document.getElementById('cAddr').value||'—';
   const od=document.getElementById('oDate').value||new Date().toISOString().split('T')[0];
   const dd=document.getElementById('dDate').value||'—';
@@ -1419,9 +1207,9 @@ async function generatePDF(returnBlob=false){
   doc.text('CUSTOMER DETAILS',M+3,y+6);
   doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(30,18,8);doc.text(cn,M+3,y+13);
   doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(80,60,40);
-  doc.text(cp,M+3,y+20);doc.text(ce,M+3,y+27);
+  doc.text(cp,M+3,y+20);
   const aLines=doc.splitTextToSize(ca,80);
-  doc.text(aLines[0]||'',M+3,y+34);if(aLines[1])doc.text(aLines[1],M+3,y+39);
+  doc.text(aLines[0]||'',M+3,y+27);if(aLines[1])doc.text(aLines[1],M+3,y+34);
   doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(101,67,33);
   doc.text('ORDER INFORMATION',M+93,y+6);
   [['Order ID',id],['Order Date',fd(od)],['Delivery Date',fd(dd)],['Sales Executive',ex]].forEach(([l,v],i)=>{
@@ -1604,7 +1392,6 @@ async function waShare(){
   // Pull all order data
   const cn   = document.getElementById('cName').value    || 'Walk-in Customer';
   const cp   = document.getElementById('cPhone').value   || '—';
-  const ce   = document.getElementById('cEmail').value   || '';
   const ca   = document.getElementById('cAddr').value    || '—';
   const od   = document.getElementById('oDate').value    || '';
   const dd   = document.getElementById('dDate').value    || '';
@@ -1676,7 +1463,6 @@ async function waShare(){
     `👤 *BILLED TO*`,
     `*${cn}*`,
     `📞 ${cp}`,
-    ce ? `✉️ ${ce}` : null,
     `📍 ${ca}`,
     THIN,
     `🛒 *ITEMS ORDERED*`,
@@ -1686,7 +1472,7 @@ async function waShare(){
     summaryBlock,
     THIN,
     `👨‍💼 *Sales Executive:* ${ex}`,
-    currentMode==='custom' ? `🎨 *Customisation:* ${getCustSummary()}` : null,
+    getCustSummary() ? `🎨 *Customisation:* ${getCustSummary()}` : null,
     nt ? `📝 *Note:* ${nt}` : null,
     THIN,
     `📋 *TERMS*`,
@@ -1735,12 +1521,12 @@ async function waShare(){
 // ── RESET ─────────────────────────────────────────────
 function resetAll(){
   items=[];
-  ['cName','cPhone','cEmail','cAddr','exec','notes'].forEach(id=>document.getElementById(id).value='');
+  ['cName','cPhone','cAddr','exec','notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('adv').value='0';
   document.getElementById('oDate').value=new Date().toISOString().split('T')[0];
   const dd=new Date();dd.setDate(dd.getDate()+14);
   document.getElementById('dDate').value=dd.toISOString().split('T')[0];
-  updateOid();renderProds();renderSummary();
+  updateOid();renderSummary();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1752,16 +1538,6 @@ const CUST = {
     {id:'velvet',   label:'Premium Velvet',  adj:3000},
     {id:'leather',  label:'Full Leather',    adj:8000},
     {id:'rexine',   label:'Rexine',          adj:4000},
-  ],
-  fabricColour: [
-    {id:'cream',  label:'Cream',        hex:'#F5F0E8'},
-    {id:'beige',  label:'Beige',        hex:'#D4B896'},
-    {id:'grey',   label:'Grey',         hex:'#8B9EB7'},
-    {id:'brown',  label:'Brown',        hex:'#8B4513'},
-    {id:'navy',   label:'Navy Blue',    hex:'#1B3A6B'},
-    {id:'green',  label:'Forest Green', hex:'#2D5A3D'},
-    {id:'maroon', label:'Maroon',       hex:'#8B0000'},
-    {id:'black',  label:'Black',        hex:'#1C1208'},
   ],
   size: [
     {id:'standard', label:'Standard',        adj:0},
@@ -1777,12 +1553,13 @@ const CUST = {
   ],
 };
 
-let custSel = {fabricType:'standard', fabricColour:'cream', size:'standard', hardware:'chrome'};
+let custSel = {fabricType:'standard', size:'standard', hardware:'chrome'};
 let custAdj = 0;
 
 function initCustOptions(){
   renderCustPills('fabricType', 'custFabricType');
-  renderColourSwatches();
+  const ci = document.getElementById('custFabricColour');
+  if(ci) ci.value = '';
   renderCustPills('size', 'custSize');
   renderCustPills('hardware', 'custHardware');
   calcCustAdj();
@@ -1798,21 +1575,10 @@ function renderCustPills(key, elId){
   ).join('');
 }
 
-function renderColourSwatches(){
-  const el = document.getElementById('custFabricColour');
-  if(!el) return;
-  el.innerHTML = CUST.fabricColour.map(o =>
-    `<div class="cswatch ${custSel.fabricColour===o.id?'on':''}"
-       style="background:${o.hex}"
-       onclick="selectCust('fabricColour','${o.id}')"
-       title="${o.label}"></div>`
-  ).join('');
-}
 
 function selectCust(key, id){
   custSel[key] = id;
-  if(key === 'fabricColour') renderColourSwatches();
-  else renderCustPills(key, key==='fabricType'?'custFabricType':key==='size'?'custSize':'custHardware');
+  renderCustPills(key, key==='fabricType'?'custFabricType':key==='size'?'custSize':'custHardware');
   calcCustAdj();
 }
 
@@ -1830,264 +1596,15 @@ function calcCustAdj(){
 }
 
 function getCustSummary(){
-  const fc = CUST.fabricColour.find(o => o.id===custSel.fabricColour)?.label || '';
-  const ft = CUST.fabricType.find(o => o.id===custSel.fabricType)?.label     || '';
-  const sz = CUST.size.find(o => o.id===custSel.size)?.label                 || '';
-  const hw = CUST.hardware.find(o => o.id===custSel.hardware)?.label         || '';
-  return `${ft} / ${fc} / ${sz} / ${hw}`;
+  const fc = document.getElementById('custFabricColour')?.value || '';
+  const ft = CUST.fabricType.find(o => o.id===custSel.fabricType)?.label || '';
+  const sz = CUST.size.find(o => o.id===custSel.size)?.label             || '';
+  const hw = CUST.hardware.find(o => o.id===custSel.hardware)?.label     || '';
+  return [ft, fc, sz, hw].filter(Boolean).join(' / ');
 }
 
-// ── Modify recalc to include custAdj when in custom mode ──
-// (override after existing recalc definition)
-const _origRecalc = recalc;
 
-// ══════════════════════════════════════════════════════
-// VENDOR CALL SCHEDULE
-// ══════════════════════════════════════════════════════
-const VENDORS = [
-  {id:'fabric',   name:'Fabric Vendor',   emoji:'🧵', lead:7, note:'Confirm fabric type, colour & quantity'},
-  {id:'glass',    name:'Glass Vendor',    emoji:'🪟', lead:5, note:'Confirm glass dimensions & finish'},
-  {id:'hardware', name:'Hardware Vendor', emoji:'⚙️', lead:3, note:'Confirm hardware finish & quantity'},
-  {id:'foam',     name:'Foam Vendor',     emoji:'🟨', lead:4, note:'Confirm foam density & dimensions'},
-];
 
-function calcVendorDates(){
-  const dDateEl = document.getElementById('dDate');
-  if(!dDateEl || !dDateEl.value) return;
-  const delivery = new Date(dDateEl.value);
-  const today    = new Date(); today.setHours(0,0,0,0);
-
-  const custName = document.getElementById('cName')?.value || 'Customer';
-  const orderId  = document.getElementById('oid')?.textContent || '';
-
-  const fmtFull  = d => d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-  const fmtShort = d => d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
-
-  const grid = document.getElementById('vendorGrid');
-  if(!grid) return;
-
-  grid.innerHTML = VENDORS.map(v => {
-    const callDate   = new Date(delivery);
-    callDate.setDate(callDate.getDate() - v.lead);
-    const daysUntil  = Math.round((callDate - today) / 86400000);
-    const isPast     = daysUntil < 0;
-    const isToday    = daysUntil === 0;
-    const isTomorrow = daysUntil === 1;
-    const isUrgent   = daysUntil <= 1;
-
-    const statusIcon  = isPast ? '⚠️' : isToday ? '🔴' : isTomorrow ? '🟡' : '📅';
-    const statusText  = isPast
-      ? `Overdue by ${Math.abs(daysUntil)} day${Math.abs(daysUntil)>1?'s':''}!`
-      : isToday ? 'Call TODAY!'
-      : isTomorrow ? 'Call tomorrow'
-      : `In ${daysUntil} days`;
-    const statusColor = isPast ? 'var(--danger)' : isToday ? '#DC2626' : isTomorrow ? '#D97706' : 'var(--success)';
-
-    const waText = encodeURIComponent(
-      `📦 *VENDOR REMINDER — Wood Art Interio*\n\n` +
-      `Please arrange for *${v.name}* call today.\n\n` +
-      `*Order:* ${orderId}\n` +
-      `*Customer:* ${custName}\n` +
-      `*Delivery Date:* ${fmtFull(delivery)}\n\n` +
-      `*Action:* ${v.note}\n\n` +
-      `_Wood Art Interio — Manarcadu, Kottayam_\n` +
-      `_+91 9400233733_`
-    );
-
-    return `<div class="vcard">
-      <div class="vcard-name">${v.emoji} ${v.name}</div>
-      <div class="vcard-lead">Delivery: ${fmtShort(delivery)} &nbsp;|&nbsp; ${v.lead}-day lead</div>
-      <div class="vcard-date ${isUrgent||isPast?'urgent':''}">${fmtFull(callDate)}</div>
-      <div class="vcard-status" style="color:${statusColor}">${statusIcon} ${statusText}</div>
-      <button class="vcard-wa" onclick="window.open('https://wa.me/?text=${waText}','_blank')">
-        📱 WhatsApp Reminder
-      </button>
-      <div class="vcard-note">${v.note}</div>
-    </div>`;
-  }).join('');
-}
-
-// ══════════════════════════════════════════════════════
-// READY MADE FLOW
-// ══════════════════════════════════════════════════════
-let rmSelectedId = null;
-let rmTakeAwayOn = false;
-let rmCurCat     = 'all';
-
-function rmFilterCat(c, el){
-  rmCurCat = c;
-  document.querySelectorAll('#rmCats .cat').forEach(t => t.classList.remove('on'));
-  el.classList.add('on');
-  renderRMProducts();
-}
-
-function renderRMProducts(){
-  const s    = (document.getElementById('rmSearch').value || '').toLowerCase();
-  const grid = document.getElementById('rmGrid');
-  const list = CAT.filter(p =>
-    (rmCurCat === 'all' || p.cat === rmCurCat) &&
-    (!s || p.name.toLowerCase().includes(s) || p.desc.toLowerCase().includes(s))
-  );
-
-  if(!list.length){
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-light)">No products found</div>';
-    return;
-  }
-
-  grid.innerHTML = list.map(p => {
-    const sel   = rmSelectedId === p.id;
-    const stk   = p.stock || 0;
-    const cls   = stk >= 3 ? 'in' : stk > 0 ? 'low' : 'out';
-    const label = stk >= 3 ? stk+' in stock' : stk === 1 ? 'Only 1 left!' : stk === 2 ? 'Only 2 left!' : 'Out of stock';
-    return `<div class="pc ${sel?'rm-sel':''} ${stk===0?'rm-out':''}" onclick="rmSelectProduct(${p.id})">
-      <div class="pc-img">${p.imgData?`<img src="${p.imgData}"/>`:`${p.e}`}</div>
-      <div class="pc-body">
-        <div class="pc-name">${p.name}</div>
-        <div class="pc-cat">${p.cat}</div>
-        <div class="pc-price">Rs.${p.price.toLocaleString('en-IN')}</div>
-        <div class="stock-badge ${cls}">${label}</div>
-      </div>
-      ${sel?'<div class="pc-tick">&#10003;</div>':''}
-    </div>`;
-  }).join('');
-
-  // set default delivery date
-  const del = document.getElementById('rmDelivery');
-  if(del && !del.value){
-    const d = new Date(); d.setDate(d.getDate()+3);
-    del.value = d.toISOString().split('T')[0];
-  }
-}
-
-function rmSelectProduct(id){
-  const p = CAT.find(x => x.id === id);
-  if(!p || (p.stock||0) === 0) return;
-  rmSelectedId = id;
-  renderRMProducts();
-
-  const stk   = p.stock || 0;
-  const cls   = stk >= 3 ? 'in' : 'low';
-  const label = stk >= 3 ? stk+' in stock' : 'Only '+stk+' left!';
-
-  document.getElementById('rmSelBox').innerHTML = `
-    <div style="display:flex;gap:10px;align-items:center;width:100%">
-      <div style="font-size:34px;flex-shrink:0">${p.imgData?`<img src="${p.imgData}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;"/>`:p.e}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:700;color:#F5E6CC;line-height:1.3">${p.name}</div>
-        <div style="font-size:10px;color:#8B7355;margin-top:1px">${p.cat} &mdash; ${p.desc}</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-          <span style="font-size:15px;font-weight:700;color:var(--amber)">Rs.${p.price.toLocaleString('en-IN')}</span>
-          <span class="stock-badge ${cls}">${label}</span>
-        </div>
-      </div>
-    </div>`;
-
-  document.getElementById('rmTotal').textContent = 'Rs. ' + p.price.toLocaleString('en-IN');
-  toast('Selected: '+p.name,'ok');
-}
-
-function rmToggleTakeAway(){
-  rmTakeAwayOn = !rmTakeAwayOn;
-  document.getElementById('rmTakeAway').classList.toggle('on', rmTakeAwayOn);
-  document.getElementById('rmTAChk').textContent = rmTakeAwayOn ? '✓' : '';
-  document.getElementById('rmDeliveryWrap').style.display = rmTakeAwayOn ? 'none' : 'block';
-  if(rmTakeAwayOn){
-    document.getElementById('rmDelivery').value = new Date().toISOString().split('T')[0];
-  }
-}
-
-function rmGenerateOrder(){
-  const name     = document.getElementById('rmName').value.trim();
-  const phone    = document.getElementById('rmPhone').value.trim();
-  const exec     = document.getElementById('rmExec').value.trim() || '—';
-  const delivery = document.getElementById('rmDelivery').value;
-
-  if(!rmSelectedId){ toast('Please select a product first'); return; }
-  if(!name)         { toast('Please enter customer name');   return; }
-  if(!phone)        { toast('Please enter phone number');    return; }
-
-  const p  = CAT.find(x => x.id === rmSelectedId);
-  const id = 'WA-RM-' + String(oc).padStart(4,'0');
-
-  const fmtDate = d => {
-    try{ return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
-    catch(e){ return d; }
-  };
-
-  const LINE = '━━━━━━━━━━━━━━━━━━━━━━━';
-  const THIN = '─────────────────────────';
-
-  const msg = [
-    `🪵 *WOOD ART INTERIO*`,
-    `_Manarcadu, Kottayam, Kerala 686019_`,
-    `_+91 9400233733 | woodartinterio.com_`,
-    LINE,
-    `📦 *READY MADE ORDER CONFIRMED*`,
-    `*Order No:* ${id}`,
-    `*Date:* ${fmtDate(new Date().toISOString())}`,
-    `*Sales Executive:* ${exec}`,
-    LINE,
-    `👤 *CUSTOMER*`,
-    `*${name}*`,
-    `📞 ${phone}`,
-    THIN,
-    `🛋️ *PRODUCT*`,
-    `*${p.name}*`,
-    `_${p.desc}_`,
-    `💰 *Rs.${p.price.toLocaleString('en-IN')}*`,
-    THIN,
-    rmTakeAwayOn
-      ? `✅ *TAKE AWAY TODAY* — Customer is taking now`
-      : `🚚 *Delivery Date: ${fmtDate(delivery)}*`,
-    LINE,
-    `✅ *Thank you for choosing Wood Art Interio!*`,
-    `_Your trusted premium furniture partner in Kerala._`,
-    `_Please show this message at the showroom for reference._`,
-    LINE,
-    `_Powered by Aarpo Global Solutions | aarpo.in_`,
-  ].join('\n');
-
-  const ph    = phone.replace(/\D/g,'');
-  const waNum = ph.startsWith('91') ? ph : '91'+ph;
-  window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
-
-  // Reduce stock locally
-  const newStock = Math.max(0, (p.stock||1) - 1);
-  p.stock = newStock;
-
-  // Sync to Google Sheet
-  saveToGoogleSheet({
-    orderNumber  : id,
-    orderType    : 'Ready Made',
-    customerName : name,
-    phone        : phone,
-    address      : '',
-    products     : p.name,
-    customisation: '',
-    deliveryDate : rmTakeAwayOn ? 'Take Away Today' : delivery,
-    isTakeAway   : rmTakeAwayOn,
-    subtotal     : p.price,
-    gstAmount    : 0,
-    total        : p.price,
-    advance      : 0,
-    balance      : p.price,
-    executive    : exec,
-    notes        : '',
-    vendorDates  : [],
-  });
-  syncStockToSheet(p, newStock, id);
-
-  // Advance order counter
-  oc++;
-  localStorage.setItem('waOC', String(oc));
-  updateOid();
-  renderRMProducts();
-
-  // Update RM order ID display
-  document.getElementById('rmOid').textContent = 'WA-RM-' + String(oc).padStart(4,'0');
-
-  toast('Work order sent via WhatsApp! Stock updated.','ok');
-}
 
 // ══════════════════════════════════════════════════════
 // GOOGLE SHEETS SYNC
@@ -2205,12 +1722,12 @@ function buildSheetPayload(){
   const grand = sub + tax;
   return {
     orderNumber  : id,
-    orderType    : currentMode === 'custom' ? 'Custom' : 'Ready Made',
+    orderType    : 'Custom',
     customerName : cn,
     phone        : cp,
     address      : ca,
     products     : items.map(i=>i.name).join(', '),
-    customisation: currentMode === 'custom' ? getCustSummary() : '',
+    customisation: getCustSummary(),
     deliveryDate : dd,
     isTakeAway   : false,
     subtotal     : Math.round(sub),
@@ -2220,7 +1737,7 @@ function buildSheetPayload(){
     balance      : Math.round(grand - adv),
     executive    : ex,
     notes        : nt,
-    vendorDates  : currentMode === 'custom' ? getVendorDatesPayload(dd) : [],
+    vendorDates  : [],
   };
 }
 
@@ -2282,20 +1799,6 @@ async function syncStockToSheet(product, newStock, orderNumber){
   }
 }
 
-// ── Build vendor dates array for sheet payload ───────────────────
-function getVendorDatesPayload(deliveryDateStr){
-  if(!deliveryDateStr) return [];
-  const delivery = new Date(deliveryDateStr);
-  return VENDORS.map(v => {
-    const d = new Date(delivery);
-    d.setDate(d.getDate() - v.lead);
-    return {
-      vendor  : v.name,
-      leadDays: v.lead,
-      callDate: d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}),
-    };
-  });
-}
 
 // ── TOAST ─────────────────────────────────────────────
 function toast(msg,type=''){
