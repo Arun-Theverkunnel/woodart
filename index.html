@@ -1221,18 +1221,19 @@ async function generatePDF(returnBlob=false){
   // ── PRODUCT TABLE HEADER ──
   doc.setFillColor(61,43,31);doc.rect(M,y,W-M*2,9,'F');
   doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(245,230,204);
-  doc.text('Photo',M+2,y+6);
-  doc.text('Product & Description',M+28,y+6);
-  doc.text('Cat.',M+98,y+6);
+  doc.text('Photo',M+4,y+6);
+  doc.text('Product & Description',M+34,y+6);
+  doc.text('Cat.',M+100,y+6);
   doc.text('Qty',M+122,y+6,{align:'center'});
-  doc.text('Unit Price',M+148,y+6,{align:'right'});
+  doc.text('Unit Price',M+150,y+6,{align:'right'});
   doc.text('Total',M+182,y+6,{align:'right'});
   y+=11;
 
   // ── PRODUCT ROWS ──
-  const ROW_H=26;
-  const IMG_W=20;
-  const IMG_H=20;
+  const ROW_H=34;
+  const IMG_W=28;
+  const IMG_H=28;
+  const IMG_X=M+2;
 
   for(let i=0;i<items.length;i++){
     const item=items[i];
@@ -1244,65 +1245,64 @@ async function generatePDF(returnBlob=false){
     doc.rect(M,y,W-M*2,ROW_H,'F');
     doc.setDrawColor(212,197,169);doc.setLineWidth(0.25);doc.rect(M,y,W-M*2,ROW_H,'S');
 
+    const imgY=y+3;
+
     // PRODUCT IMAGE — embed from imgCache
     const b64=imgCache[item.id];
     if(b64){
       try{
-        // Draw a subtle frame/shadow for the image
         doc.setFillColor(230,220,205);
-        doc.rect(M+1.5,y+3,IMG_W,IMG_H,'F');
-        // Add the actual image
-        doc.addImage(b64,'JPEG',M+1.5,y+3,IMG_W,IMG_H,'img'+item.id,'FAST');
-        // Thin border around image
+        doc.rect(IMG_X,imgY,IMG_W,IMG_H,'F');
+        doc.addImage(b64,'JPEG',IMG_X,imgY,IMG_W,IMG_H,'img'+item.id,'FAST');
         doc.setDrawColor(180,160,130);doc.setLineWidth(0.3);
-        doc.rect(M+1.5,y+3,IMG_W,IMG_H,'S');
+        doc.rect(IMG_X,imgY,IMG_W,IMG_H,'S');
       }catch(err){
-        // Fallback placeholder
-        doc.setFillColor(220,210,195);doc.rect(M+1.5,y+3,IMG_W,IMG_H,'F');
-        doc.setFontSize(7);doc.setTextColor(140,110,80);
-        doc.text('Photo',M+5,y+14);
+        doc.setFillColor(220,210,195);doc.rect(IMG_X,imgY,IMG_W,IMG_H,'F');
+        doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(140,110,80);
+        doc.text('No Photo',IMG_X+IMG_W/2,imgY+IMG_H/2+2,{align:'center'});
       }
     }else{
-      // Emoji placeholder box
-      doc.setFillColor(235,225,210);doc.rect(M+1.5,y+3,IMG_W,IMG_H,'F');
-      doc.setDrawColor(200,185,165);doc.rect(M+1.5,y+3,IMG_W,IMG_H,'S');
-      doc.setFontSize(9);doc.setTextColor(120,100,80);
-      doc.text(item.e||'',M+5,y+16);
+      // Clean placeholder — no emoji (jsPDF Helvetica can't render emoji)
+      doc.setFillColor(235,225,210);doc.rect(IMG_X,imgY,IMG_W,IMG_H,'F');
+      doc.setDrawColor(200,185,165);doc.setLineWidth(0.3);doc.rect(IMG_X,imgY,IMG_W,IMG_H,'S');
+      doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(180,150,120);
+      doc.text('No Photo',IMG_X+IMG_W/2,imgY+IMG_H/2+2,{align:'center'});
     }
 
     // Row number
     doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(160,128,96);
-    doc.text(String(i+1),M+23.5,y+14,{align:'center'});
+    doc.text(String(i+1),IMG_X+IMG_W+3,y+7);
 
     // Product name
+    const txtX=IMG_X+IMG_W+2;
     doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(28,16,8);
-    const nameLines=doc.splitTextToSize(item.name,65);
-    doc.text(nameLines[0],M+28,y+10);
+    const nameLines=doc.splitTextToSize(item.name,60);
+    doc.text(nameLines[0],txtX,y+13);
+    if(nameLines[1])doc.text(nameLines[1],txtX,y+19);
 
     // Description
     doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(110,90,70);
     const desc=item.desc||'';
     if(desc){
-      const dLines=doc.splitTextToSize(desc,65);
-      doc.text(dLines[0],M+28,y+17);
-      if(nameLines[1])doc.text(nameLines[1],M+28,y+17);
+      const dLines=doc.splitTextToSize(desc,60);
+      doc.text(dLines[0],txtX,y+24);
     }
 
     // Category
     doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(80,60,40);
-    doc.text(item.cat,M+98,y+10);
+    doc.text(item.cat,M+100,y+17);
 
     // Qty
     doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(30,18,8);
-    doc.text(String(item.qty),M+122,y+10,{align:'center'});
+    doc.text(String(item.qty),M+122,y+17,{align:'center'});
 
     // Unit price
     doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(80,60,40);
-    doc.text('Rs.'+item.unitPrice.toLocaleString('en-IN'),M+148,y+10,{align:'right'});
+    doc.text('Rs.'+item.unitPrice.toLocaleString('en-IN'),M+150,y+17,{align:'right'});
 
     // Row total
     doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(61,43,31);
-    doc.text('Rs.'+(item.qty*item.unitPrice).toLocaleString('en-IN'),M+182,y+10,{align:'right'});
+    doc.text('Rs.'+(item.qty*item.unitPrice).toLocaleString('en-IN'),M+182,y+17,{align:'right'});
 
     y+=ROW_H;
   }
