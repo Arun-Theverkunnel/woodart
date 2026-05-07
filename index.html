@@ -1364,8 +1364,9 @@ async function generatePDF(returnBlob=false){
     y+=34;
   }
 
-  // ── BOTTOM SECTION — fixed near page bottom ──
-  const bY=H-52;
+  // ── BOTTOM SECTION — after terms, never overlapping ──
+  let bY = Math.max(H-52, y+8);
+  if(bY+45 > H-12){ doc.addPage(); bY=20; }
 
   // "We hope you find our offer..." | "For, Wood Art Furniture Mart"
   doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.setTextColor(60,45,30);
