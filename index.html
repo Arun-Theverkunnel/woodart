@@ -349,14 +349,9 @@ textarea{resize:vertical;min-height:68px;}
           <input id="custFabricColour" placeholder="e.g. Grey, Navy Blue, Beige, Maroon..." style="margin-top:2px;"/>
         </div>
 
-        <div class="cust-group">
+        <div class="cust-group full">
           <div class="lbl">Size</div>
-          <div class="cust-pills" id="custSize"></div>
-        </div>
-
-        <div class="cust-group">
-          <div class="lbl">Hardware Finish</div>
-          <div class="cust-pills" id="custHardware"></div>
+          <input id="custSize" placeholder="e.g. 6×6 ft, 5×6 ft, Custom 7×4 ft..." style="margin-top:2px;"/>
         </div>
 
         <div class="cust-group full">
@@ -706,7 +701,7 @@ function selectMode(mode){
   document.getElementById('dDate').value = d.toISOString().split('T')[0];
   document.getElementById('oDate').value = new Date().toISOString().split('T')[0];
   // Reset customisations
-  custSel = {fabricType:'standard', size:'standard', hardware:'chrome'};
+  custSel = {fabricType:'standard'};
   custAdj = 0;
   initCustOptions();
   updateOid(); renderSummary();
@@ -1558,29 +1553,17 @@ const CUST = {
     {id:'leather',  label:'Full Leather',    adj:8000},
     {id:'rexine',   label:'Rexine',          adj:4000},
   ],
-  size: [
-    {id:'standard', label:'Standard',        adj:0},
-    {id:'queen',    label:'Queen (5×6 ft)',  adj:1500},
-    {id:'king',     label:'King (6×7 ft)',   adj:3000},
-    {id:'custom',   label:'Custom Size',     adj:0},
-  ],
-  hardware: [
-    {id:'chrome',  label:'Silver Chrome', adj:0},
-    {id:'matte',   label:'Matte Black',   adj:500},
-    {id:'gold',    label:'Antique Gold',  adj:800},
-    {id:'bronze',  label:'Bronze',        adj:600},
-  ],
 };
 
-let custSel = {fabricType:'standard', size:'standard', hardware:'chrome'};
+let custSel = {fabricType:'standard'};
 let custAdj = 0;
 
 function initCustOptions(){
   renderCustPills('fabricType', 'custFabricType');
   const ci = document.getElementById('custFabricColour');
   if(ci) ci.value = '';
-  renderCustPills('size', 'custSize');
-  renderCustPills('hardware', 'custHardware');
+  const si = document.getElementById('custSize');
+  if(si) si.value = '';
   calcCustAdj();
 }
 
@@ -1597,15 +1580,13 @@ function renderCustPills(key, elId){
 
 function selectCust(key, id){
   custSel[key] = id;
-  renderCustPills(key, key==='fabricType'?'custFabricType':key==='size'?'custSize':'custHardware');
+  renderCustPills(key, 'custFabricType');
   calcCustAdj();
 }
 
 function calcCustAdj(){
-  const ft = CUST.fabricType.find(o => o.id===custSel.fabricType)?.adj  || 0;
-  const sz = CUST.size.find(o => o.id===custSel.size)?.adj              || 0;
-  const hw = CUST.hardware.find(o => o.id===custSel.hardware)?.adj      || 0;
-  custAdj = ft + sz + hw;
+  const ft = CUST.fabricType.find(o => o.id===custSel.fabricType)?.adj || 0;
+  custAdj = ft;
   const el = document.getElementById('custAdjAmt');
   if(el){
     el.textContent = custAdj > 0 ? '+Rs.'+custAdj.toLocaleString('en-IN') : 'Rs. 0 (no adjustment)';
@@ -1615,11 +1596,10 @@ function calcCustAdj(){
 }
 
 function getCustSummary(){
-  const fc = document.getElementById('custFabricColour')?.value || '';
   const ft = CUST.fabricType.find(o => o.id===custSel.fabricType)?.label || '';
-  const sz = CUST.size.find(o => o.id===custSel.size)?.label             || '';
-  const hw = CUST.hardware.find(o => o.id===custSel.hardware)?.label     || '';
-  return [ft, fc, sz, hw].filter(Boolean).join(' / ');
+  const fc = document.getElementById('custFabricColour')?.value || '';
+  const sz = document.getElementById('custSize')?.value || '';
+  return [ft, fc, sz].filter(Boolean).join(' / ');
 }
 
 
